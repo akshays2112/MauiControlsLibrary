@@ -72,6 +72,8 @@ namespace MauiControlsLibrary
         {
             canvas.StrokeColor = Colors.Grey;
             canvas.DrawRectangle(new Rect(0, 0, this.Width, this.Height));
+            canvas.SaveState();
+            canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
             int totalHeight = Labels.Length * RowHeight;
             if(currentPanY > totalHeight)
                 currentPanY = totalHeight - RowHeight;
@@ -95,6 +97,7 @@ namespace MauiControlsLibrary
                 canvas.FontSize = LabelTextFontSize;
                 canvas.DrawString(Labels[i], 0, (i - currentIndex) * RowHeight + yOffset, (float)this.Width, (float)this.Height, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
             }
+            canvas.ResetState();
         }
     }
 }
