@@ -25,13 +25,16 @@
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
-            if(LabelBackgroundColor != null)
+            if (LabelBackgroundColor != null)
             {
                 canvas.FillColor = LabelBackgroundColor;
                 canvas.FillRectangle(new Rect(0, 0, this.Width, this.Height));
             }
-            Helper.SetFontAttributes(canvas, LabelTextFont, LabelTextColor, LabelTextFontSize);
-            canvas.DrawString(LabelText, 0, 0, (float)this.Width, (float)this.Height, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
+            if (!string.IsNullOrEmpty(LabelText))
+            {
+                Helper.SetFontAttributes(canvas, LabelTextFont, LabelTextColor, LabelTextFontSize);
+                canvas.DrawString(LabelText, 0, 0, (float)this.Width, (float)this.Height, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     public class MCLListbox : GraphicsView, IDrawable
     {
-        public string[] Labels { get; set; } = ["Camaro", "Corvette", "BMW", "Mercedes Benz", "Santro Xing", "Bugatti", "Lamborghini"];
+        public string[] Labels { get; set; } = Array.Empty<string>();
         public Microsoft.Maui.Graphics.Font LabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
         public Color LabelFontColor { get; set; } = Colors.Black;
         public int LabelFontSize { get; set; } = 18;

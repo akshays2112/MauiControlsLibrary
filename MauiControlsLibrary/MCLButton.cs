@@ -10,7 +10,7 @@
         public VerticalAlignment ButtonTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
         public Color ButtonColor { get; set; } = Colors.Green;
         public Color ButtonTappedColor { get; set; } = Colors.Red;
-        public double CornerRadius { get; set; } = 5;
+        public double ButtonCornerRadius { get; set; } = 5;
         public event EventHandler<EventArgs>? OnMCLButtonTapped;
         public bool Tapped { get; set; } = false;
 
@@ -50,10 +50,12 @@
         private void DrawButton(ICanvas canvas, Color color)
         {
             canvas.FillColor = color;
-            canvas.FillRoundedRectangle(new Rect(0, 0, this.Width, this.Height), CornerRadius);
-            Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
-            if(!string.IsNullOrEmpty(ButtonText))
+            canvas.FillRoundedRectangle(new Rect(0, 0, this.Width, this.Height), ButtonCornerRadius);
+            if (!string.IsNullOrEmpty(ButtonText))
+            {
+                Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
                 canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+            }
         }
     }
 }

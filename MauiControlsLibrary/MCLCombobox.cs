@@ -8,7 +8,8 @@
         public HorizontalAlignment TextboxHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
         public VerticalAlignment TextboxVerticalAlignment { get; set; } = VerticalAlignment.Top;
 
-        public string ButtonText { get; set; } = "▼";
+        public string ButtonTextForListboxCollapsed { get; set; } = "▼";
+        public string ButtonTextForListboxExpanded { get; set; } = "▲";
         public Microsoft.Maui.Graphics.Font ButtonTextFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
         public Color ButtonTextColor { get; set; } = Colors.Black;
         public int ButtonTextFontSize { get; set; } = 18;
@@ -154,9 +155,12 @@
         {
             canvas.FillColor = color;
             canvas.FillRoundedRectangle(new RectF((float)this.Width - ButtonHeight, 0, ButtonHeight, ButtonHeight), (float)ButtonCornerRadius);
-            Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
-            if (!string.IsNullOrEmpty(ButtonText))
-                canvas.DrawString(ButtonText, (float)this.Width - ButtonHeight, 0, ButtonHeight, ButtonHeight, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+            if (!string.IsNullOrEmpty(ButtonTextForListboxCollapsed))
+            {
+                Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
+                canvas.DrawString(ListboxVisible ? ButtonTextForListboxExpanded : ButtonTextForListboxCollapsed, (float)this.Width - ButtonHeight,
+                    0, ButtonHeight, ButtonHeight, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+            }
         }
     }
 }
