@@ -19,10 +19,10 @@
         public int DataRowHeight { get; set; } = 25;
         public int HeaderRowHeight { get; set; } = 50;
 
+        public event EventHandler<GridEventArgs>? OnMCLGridTapped;
+
         private int currentPanY = 0;
         private int currentPanX = 0;
-
-        public event EventHandler<GridEventArgs>? OnMCLGridTapped;
 
         public class GridEventArgs
         {
