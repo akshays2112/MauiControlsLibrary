@@ -1,10 +1,15 @@
-﻿namespace MauiControlsLibrary
+﻿using Microsoft.Maui.Graphics.Platform;
+using System.Reflection;
+
+namespace MauiControlsLibrary
 {
     public class MCLTreeview : GraphicsView, IDrawable
     {
         public TreeviewNode[]? TreeviewNodes { get; set; }
         public string ExpandButtonLabel { get; set; } = "+";
         public string CollapseButtonLabel { get; set; } = "-";
+        public Microsoft.Maui.Graphics.IImage? ExpandButtonImage { get; set; }
+        public Microsoft.Maui.Graphics.IImage? CollapseButtonImage { get; set; }
         public Color? TreeviewBackgroundColor { get; set; }
         public Microsoft.Maui.Graphics.Font TreeviewNodeLabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
         public Color TreeviewNodeLabelColor { get; set; } = Colors.Black;
@@ -174,11 +179,19 @@
             if (node.ChildNodes != null && node.ChildNodes.Length > 0)
             {
                 int heightOffset = yOffset + (TreeviewNodeHeight - ExpandCollapseButtonWidthHeight) / 2 - currentPanY;
-                canvas.StrokeColor = Colors.Grey;
-                canvas.DrawRectangle(levelIndent, heightOffset, ExpandCollapseButtonWidthHeight, ExpandCollapseButtonWidthHeight);
-                canvas.DrawString(node.ExpandCollapseButtonState == ExpandCollapseButtonState.Expanded ? CollapseButtonLabel : ExpandButtonLabel, 
-                    levelIndent, heightOffset, ExpandCollapseButtonWidthHeight, TreeviewNodeHeight - (TreeviewNodeHeight - 
-                    ExpandCollapseButtonWidthHeight), HorizontalAlignment.Center, VerticalAlignment.Center);
+                if (ExpandButtonImage != null && CollapseButtonImage != null)
+                {
+                    Microsoft.Maui.Graphics.IImage tmpImage = node.ExpandCollapseButtonState == ExpandCollapseButtonState.Expanded ? CollapseButtonImage : ExpandButtonImage;
+                    canvas.DrawImage(tmpImage, levelIndent, heightOffset, ExpandCollapseButtonWidthHeight, ExpandCollapseButtonWidthHeight);
+                }
+                else
+                {
+                    canvas.StrokeColor = Colors.Grey;
+                    canvas.DrawRectangle(levelIndent, heightOffset, ExpandCollapseButtonWidthHeight, ExpandCollapseButtonWidthHeight);
+                    canvas.DrawString(node.ExpandCollapseButtonState == ExpandCollapseButtonState.Expanded ? CollapseButtonLabel : ExpandButtonLabel,
+                        levelIndent, heightOffset, ExpandCollapseButtonWidthHeight, TreeviewNodeHeight - (TreeviewNodeHeight -
+                        ExpandCollapseButtonWidthHeight), HorizontalAlignment.Center, VerticalAlignment.Center);
+                }
                 treeviewNodeHits.Add(new TreeviewNodeHit(new RectF(levelIndent, heightOffset, ExpandCollapseButtonWidthHeight, 
                     ExpandCollapseButtonWidthHeight), HitAreaType.ExpandCollapseButton, node));
             }
@@ -202,6 +215,19 @@
             if (yOffset > maxTreeviewNodesHeight)
                 maxTreeviewNodesHeight = yOffset;
             return yOffset;
+        }
+
+        public void LoadExpandCollapseImages(Assembly assembly, string manifestResourcePathExpandImage, string manifestResourcePathCollapseImage)
+        {
+            using (Stream? stream = assembly.GetManifestResourceStream(manifestResourcePathExpandImage))
+            {
+                ExpandButtonImage = PlatformImage.FromStream(stream);
+                ExpandCollapseButtonWidthHeight = (int)ExpandButtonImage.Width;
+            }
+            using (Stream? stream = assembly.GetManifestResourceStream(manifestResourcePathCollapseImage))
+            {
+                CollapseButtonImage = PlatformImage.FromStream(stream);
+            }
         }
     }
 }
