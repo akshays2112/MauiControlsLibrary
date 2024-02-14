@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using static MauiControlsLibrary.MCLListbox;
-
-namespace MauiControlsLibrary
+﻿namespace MauiControlsLibrary
 {
     public class MCLGrid : GraphicsView, IDrawable
     {
@@ -100,12 +92,17 @@ namespace MauiControlsLibrary
             canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
             if (HeaderNames != null)
             {
-                for (int i = 0; i < HeaderNames.Length; i++)
+                int colStart = (int)Math.Floor((decimal)currentPanX / (decimal)ColumnWidth);
+                if (colStart < 0)
+                    colStart = 0;
+                if (colStart > HeaderNames.Length - 1)
+                    colStart = HeaderNames.Length - 1;
+                for (int col = colStart; col < HeaderNames.Length; col++)
                 {
-                    if (HeaderNames[i] != null)
+                    if (HeaderNames[col] != null)
                     {
                         Helper.SetFontAttributes(canvas, HeaderFont, HeaderFontColor, HeaderFontSize);
-                        canvas.DrawString(HeaderNames[i], i * ColumnWidth, 0, ColumnWidth, HeaderRowHeight, HeaderTextHorizontalAlignment, HeaderTextVerticalAlignment);
+                        canvas.DrawString(HeaderNames[col], col * ColumnWidth - currentPanX, 0, ColumnWidth, HeaderRowHeight, HeaderTextHorizontalAlignment, HeaderTextVerticalAlignment);
                     }
                 }
             }

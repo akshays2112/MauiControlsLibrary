@@ -1,6 +1,4 @@
-﻿using Microsoft.Maui.Graphics;
-
-namespace MauiControlsLibrary
+﻿namespace MauiControlsLibrary
 {
     public class MCLButton : GraphicsView, IDrawable
     {
