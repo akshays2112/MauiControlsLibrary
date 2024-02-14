@@ -11,7 +11,7 @@
         public Color ButtonColor { get; set; } = Colors.Green;
         public Color ButtonTappedColor { get; set; } = Colors.Red;
         public double CornerRadius { get; set; } = 5;
-        public event EventHandler<EventArgs>? OnMCCLButtonTapped;
+        public event EventHandler<EventArgs>? OnMCLButtonTapped;
         public bool Tapped { get; set; } = false;
 
         public MCLButton()
@@ -25,8 +25,8 @@
                     && point.Value.Y >= 0 && point.Value.Y < this.Height)
                 {
                     Tapped = true;
-                    if (OnMCCLButtonTapped != null)
-                        OnMCCLButtonTapped(this, e);
+                    if (OnMCLButtonTapped != null)
+                        OnMCLButtonTapped(this, e);
                     this.Invalidate();
                 }
             };
@@ -52,7 +52,8 @@
             canvas.FillColor = color;
             canvas.FillRoundedRectangle(new Rect(0, 0, this.Width, this.Height), CornerRadius);
             Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
-            canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+            if(!string.IsNullOrEmpty(ButtonText))
+                canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
         }
     }
 }

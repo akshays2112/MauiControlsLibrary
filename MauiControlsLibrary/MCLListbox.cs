@@ -2,7 +2,7 @@
 {
     public class MCLListbox : GraphicsView, IDrawable
     {
-        public string[] Labels { get; set; } = Array.Empty<string>();
+        public string[] Labels { get; set; } = ["Camaro", "Corvette", "BMW", "Mercedes Benz", "Santro Xing", "Bugatti", "Lamborghini"];
         public Microsoft.Maui.Graphics.Font LabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
         public Color LabelFontColor { get; set; } = Colors.Black;
         public int LabelFontSize { get; set; } = 18;
@@ -69,7 +69,7 @@
             canvas.DrawRectangle(new Rect(0, 0, this.Width, this.Height));
             canvas.SaveState();
             canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
-            if (Labels != null)
+            if (Labels != null && Labels.Length > 0)
             {
                 canvas.SaveState();
                 canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);

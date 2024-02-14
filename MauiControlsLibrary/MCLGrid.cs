@@ -63,7 +63,7 @@
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Data != null && point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
+                if (Data != null && Data.Length > 0 && point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
                     && point.Value.Y >= HeaderRowHeight && point.Value.Y < this.Height)
                 {
                     int currentRowIndex = (int)Math.Floor(((decimal)currentPanY - HeaderRowHeight) / (decimal)DataRowHeight + (decimal)point.Value.Y / (decimal)DataRowHeight);
@@ -90,7 +90,7 @@
             canvas.DrawRectangle(0, 0, (float)this.Width, (float)this.Height);
             canvas.SaveState();
             canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
-            if (HeaderNames != null)
+            if (HeaderNames != null && HeaderNames.Length > 0)
             {
                 int colStart = (int)Math.Floor((decimal)currentPanX / (decimal)ColumnWidth);
                 if (colStart < 0)
@@ -107,7 +107,7 @@
                 }
             }
             canvas.RestoreState();
-            if (Data != null)
+            if (Data != null && Data.Length > 0)
             {
                 canvas.SaveState();
                 canvas.ClipRectangle(0, HeaderRowHeight, (float)this.Width, (float)this.Height - HeaderRowHeight);
