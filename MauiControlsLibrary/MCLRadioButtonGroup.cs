@@ -84,8 +84,9 @@
                     ArrangeHorizontal ? (float)this.Height : (float)(this.Height / (double)Labels.Length), RadioButtonGroupTextHorizontalAlignment,
                     RadioButtonGroupTextVerticalAlignment); ;
                 canvas.StrokeColor = Colors.Grey;
-                PointF radioButtonCenter = new PointF(ArrangeHorizontal ? offset + labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius : 0, 
-                    (ArrangeHorizontal ? (float)this.Height / 2F : offset + (float)(this.Height / (double)Labels.Length)));
+                PointF radioButtonCenter = new PointF(ArrangeHorizontal ? offset + labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius :
+                    labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius, (ArrangeHorizontal ? (float)this.Height / 2F :
+                    offset + (float)(this.Height / (double)Labels.Length) / 2F));
                 RadioButtonsCenters[i] = radioButtonCenter;
                 canvas.DrawCircle(radioButtonCenter, RadioButtonRadius);
                 if(SelectedRadioButtonIndex == i)
@@ -93,8 +94,8 @@
                     canvas.FillColor = RadioButtonColor;
                     canvas.FillCircle(radioButtonCenter, RadioButtonRadius - 1);
                 }
-                offset += (int)(ArrangeHorizontal ? labelSizeF.Width + SpacingBetweenLabelAndRadioButton + 2 * RadioButtonRadius : 
-                    labelSizeF.Height) + SpacingBetweenRadioButtons;
+                offset += (int)(ArrangeHorizontal ? labelSizeF.Width + SpacingBetweenLabelAndRadioButton + 2 * RadioButtonRadius + SpacingBetweenRadioButtons :
+                    (float)(this.Height / (double)Labels.Length));
             }
         }
     }
