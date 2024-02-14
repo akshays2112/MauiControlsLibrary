@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Maui.Platform;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -42,7 +43,7 @@ namespace MauiControlsLibrary
                     currentPanY += (int)e.TotalY;
                     if(currentPanY < 0)
                         currentPanY = 0;
-                    if(currentPanY > Labels.Length * RowHeight)
+                    if(currentPanY > (Labels.Length - 1) * RowHeight)
                         currentPanY = (Labels.Length - 1) * RowHeight;
                     this.Invalidate();
                 }
