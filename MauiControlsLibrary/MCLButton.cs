@@ -2,7 +2,7 @@
 
 namespace MauiControlsLibrary
 {
-    public class MCCLButton : GraphicsView, IDrawable
+    public class MCLButton : GraphicsView, IDrawable
     {
         public string ButtonText { get; set; } = string.Empty;
         public Microsoft.Maui.Graphics.Font ButtonTextFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
@@ -16,7 +16,7 @@ namespace MauiControlsLibrary
         public event EventHandler<EventArgs>? OnMCCLButtonTapped;
         public bool Tapped { get; set; } = false;
 
-        public MCCLButton()
+        public MCLButton()
         {
             this.Drawable = this;
             TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
@@ -53,9 +53,7 @@ namespace MauiControlsLibrary
         {
             canvas.FillColor = color;
             canvas.FillRoundedRectangle(new Rect(0, 0, this.Width, this.Height), CornerRadius);
-            canvas.Font = ButtonTextFont;
-            canvas.FontColor = ButtonTextColor;
-            canvas.FontSize = ButtonTextFontSize;
+            Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
             canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
         }
     }

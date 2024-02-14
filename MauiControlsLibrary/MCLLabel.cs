@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MauiControlsLibrary
 {
-    public class MCCLLabel : GraphicsView, IDrawable
+    public class MCLLabel : GraphicsView, IDrawable
     {
         private string labelText = string.Empty;
         public string LabelText { 
@@ -24,7 +24,7 @@ namespace MauiControlsLibrary
         public VerticalAlignment LabelTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
         public Color? LabelBackgroundColor { get; set; } = null;
 
-        public MCCLLabel()
+        public MCLLabel()
         {
             this.Drawable = this;
         }
@@ -36,9 +36,7 @@ namespace MauiControlsLibrary
                 canvas.FillColor = LabelBackgroundColor;
                 canvas.FillRectangle(new Rect(0, 0, this.Width, this.Height));
             }
-            canvas.Font = LabelTextFont;
-            canvas.FontColor = LabelTextColor;
-            canvas.FontSize = LabelTextFontSize;
+            Helper.SetFontAttributes(canvas, LabelTextFont, LabelTextColor, LabelTextFontSize);
             canvas.DrawString(LabelText, 0, 0, (float)this.Width, (float)this.Height, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
         }
     }
