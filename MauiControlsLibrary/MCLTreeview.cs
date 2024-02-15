@@ -219,15 +219,10 @@ namespace MauiControlsLibrary
 
         public void LoadExpandCollapseImages(Assembly assembly, string manifestResourcePathExpandImage, string manifestResourcePathCollapseImage)
         {
-            using (Stream? stream = assembly.GetManifestResourceStream(manifestResourcePathExpandImage))
-            {
-                ExpandButtonImage = PlatformImage.FromStream(stream);
+            ExpandButtonImage = Helper.LoadImage(assembly, manifestResourcePathExpandImage);
+            if (ExpandButtonImage != null)
                 ExpandCollapseButtonWidthHeight = (int)ExpandButtonImage.Width;
-            }
-            using (Stream? stream = assembly.GetManifestResourceStream(manifestResourcePathCollapseImage))
-            {
-                CollapseButtonImage = PlatformImage.FromStream(stream);
-            }
+            CollapseButtonImage = Helper.LoadImage(assembly, manifestResourcePathCollapseImage);
         }
     }
 }

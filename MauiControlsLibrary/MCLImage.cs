@@ -60,14 +60,11 @@ namespace MauiControlsLibrary
 
         public void LoadImage(Assembly assembly, string manifestResourcePath)
         {
-            using (Stream? stream = assembly.GetManifestResourceStream(manifestResourcePath))
+            Image = Helper.LoadImage(assembly, manifestResourcePath);
+            if(Image != null)
             {
-                Image = PlatformImage.FromStream(stream);
-                if(Image != null)
-                {
-                    this.WidthRequest = Image.Width;
-                    this.HeightRequest = Image.Height;
-                }
+                this.WidthRequest = Image.Width;
+                this.HeightRequest = Image.Height;
             }
         }
     }

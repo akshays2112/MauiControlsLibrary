@@ -1,4 +1,6 @@
-﻿namespace MauiControlsLibrary
+﻿using System.Reflection;
+
+namespace MauiControlsLibrary
 {
     public class MCLButton : GraphicsView, IDrawable
     {
@@ -11,6 +13,9 @@
         public Color ButtonColor { get; set; } = Colors.Green;
         public Color ButtonTappedColor { get; set; } = Colors.Red;
         public double ButtonCornerRadius { get; set; } = 5;
+        public Microsoft.Maui.Graphics.IImage? ButtonBackgroundNotPressedImage { get; set; }
+        public Microsoft.Maui.Graphics.IImage? ButtonBackgroundPressedImage { get; set; }
+        public bool ClipButtonBackgroundImage { get; set; } = true;
         public event EventHandler<EventArgs>? OnMCLButtonTapped;
         public bool Tapped { get; set; } = false;
 
@@ -38,13 +43,51 @@
             if (Tapped)
             {
                 Tapped = false;
-                DrawButton(canvas, this.ButtonTappedColor);
-                this.Invalidate();
+                if (ButtonBackgroundPressedImage != null)
+                {
+                    canvas.SaveState();
+                    canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
+                    if (ClipButtonBackgroundImage)
+                    {
+                        canvas.DrawImage(ButtonBackgroundPressedImage, 0, 0, ButtonBackgroundPressedImage.Width < this.Width ? (float)this.Width :
+                            ButtonBackgroundPressedImage.Width, ButtonBackgroundPressedImage.Height < this.Height ? (float)this.Height :
+                            ButtonBackgroundPressedImage.Height);
+                    }
+                    else
+                    {
+                        canvas.DrawImage(ButtonBackgroundPressedImage, 0, 0, (float)this.Width, (float)this.Height);
+                    }
+                    canvas.ResetState();
+                }
+                else
+                {
+                    DrawButton(canvas, this.ButtonTappedColor);
+                }
             }
             else
             {
-                DrawButton(canvas, this.ButtonColor);
+                if (ButtonBackgroundNotPressedImage != null)
+                {
+                    canvas.SaveState();
+                    canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
+                    if (ClipButtonBackgroundImage)
+                    {
+                        canvas.DrawImage(ButtonBackgroundNotPressedImage, 0, 0, ButtonBackgroundNotPressedImage.Width < this.Width ? (float)this.Width :
+                            ButtonBackgroundNotPressedImage.Width, ButtonBackgroundNotPressedImage.Height < this.Height ? (float)this.Height :
+                            ButtonBackgroundNotPressedImage.Height);
+                    }
+                    else
+                    {
+                        canvas.DrawImage(ButtonBackgroundNotPressedImage, 0, 0, (float)this.Width, (float)this.Height);
+                    }
+                    canvas.ResetState();
+                }
+                else
+                {
+                    DrawButton(canvas, this.ButtonColor);
+                }
             }
+            this.Invalidate();
         }
 
         private void DrawButton(ICanvas canvas, Color color)
@@ -55,6 +98,19 @@
             {
                 Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
                 canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+            }
+        }
+
+        public void LoadButtonBackgroundImages(Assembly assembly, string? manifestResourcePathButtonBackgroundImageNotPressed, 
+            string? manifestResourcePathButtonBackgroundPressedImage)
+        {
+            if (!string.IsNullOrEmpty(manifestResourcePathButtonBackgroundImageNotPressed))
+            {
+                ButtonBackgroundNotPressedImage = Helper.LoadImage(assembly, manifestResourcePathButtonBackgroundImageNotPressed);
+            }
+            if (!string.IsNullOrEmpty(manifestResourcePathButtonBackgroundPressedImage))
+            {
+                ButtonBackgroundPressedImage = Helper.LoadImage(assembly, manifestResourcePathButtonBackgroundPressedImage);
             }
         }
     }
