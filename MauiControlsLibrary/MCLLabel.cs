@@ -11,11 +11,7 @@
                 this.Invalidate(); 
             }
         }
-        public Microsoft.Maui.Graphics.Font LabelTextFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color LabelTextColor { get; set; } = Colors.Black;
-        public int LabelTextFontSize { get; set; } = 18;
-        public HorizontalAlignment LabelTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment LabelTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties LabelFont { get; set; } = new();
         public Color? LabelBackgroundColor { get; set; } = null;
 
         public MCLLabel()
@@ -32,8 +28,9 @@
             }
             if (!string.IsNullOrEmpty(LabelText))
             {
-                Helper.SetFontAttributes(canvas, LabelTextFont, LabelTextColor, LabelTextFontSize);
-                canvas.DrawString(LabelText, 0, 0, (float)this.Width, (float)this.Height, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
+                Helper.SetFontAttributes(canvas, LabelFont);
+                canvas.DrawString(LabelText, 0, 0, (float)this.Width, (float)this.Height, LabelFont.HorizontalAlignment, 
+                    LabelFont.VerticalAlignment);
             }
         }
     }

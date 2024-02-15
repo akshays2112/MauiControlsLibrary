@@ -11,11 +11,7 @@ namespace MauiControlsLibrary
         public Microsoft.Maui.Graphics.IImage? ExpandButtonImage { get; set; }
         public Microsoft.Maui.Graphics.IImage? CollapseButtonImage { get; set; }
         public Color? TreeviewBackgroundColor { get; set; }
-        public Microsoft.Maui.Graphics.Font TreeviewNodeLabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color TreeviewNodeLabelColor { get; set; } = Colors.Black;
-        public int TreeviewNodeLabelFontSize { get; set; } = 18;
-        public HorizontalAlignment TreeviewNodeLabelHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment TreeviewNodeLabelVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties TreeviewNodeLabelFont { get; set; } = new();
         public int PerLevelNodeLeftIndent { get; set; } = 15;
         public int SpacingBetweenButtonAndLabel { get; set; } = 20;
         public int TreeviewNodeHeight { get; set; } = 35;
@@ -88,15 +84,9 @@ namespace MauiControlsLibrary
                 if (treeviewNodeHits != null && e.StatusType == GestureStatus.Running)
                 {
                     currentPanY += (int)e.TotalY;
-                    if (currentPanY < 0)
-                        currentPanY = 0;
-                    if (currentPanY > maxTreeviewNodesHeight - TreeviewNodeHeight)
-                        currentPanY = maxTreeviewNodesHeight - TreeviewNodeHeight;
+                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, maxTreeviewNodesHeight - TreeviewNodeHeight);
                     currentPanX += (int)e.TotalX;
-                    if (currentPanX < 0)
-                        currentPanX = 0;
-                    if (currentPanX > maxTreeviewNodeWidth - (int)this.Width + TreeviewNodeLabelFontSize)
-                        currentPanX = maxTreeviewNodeWidth - (int)this.Width + TreeviewNodeLabelFontSize;
+                    currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, maxTreeviewNodeWidth - (int)this.Width + TreeviewNodeLabelFont.FontSize);
                     this.Invalidate();
                 }
             };
@@ -105,16 +95,15 @@ namespace MauiControlsLibrary
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y < this.Height)
+                if (Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
                 {
                     if (treeviewNodeHits != null) {
                         for (int i = 0; i < treeviewNodeHits.Count; i++)
                         {
-                            if (treeviewNodeHits[i] != null && treeviewNodeHits[i].TreeviewNode != null && point.Value.X >= treeviewNodeHits[i].HitArea.X &&
-                                point.Value.X <= treeviewNodeHits[i].HitArea.X + treeviewNodeHits[i].HitArea.Width &&
-                                point.Value.Y >= treeviewNodeHits[i].HitArea.Y && point.Value.Y <= treeviewNodeHits[i].HitArea.Y + 
-                                treeviewNodeHits[i].HitArea.Height)
+                            if (treeviewNodeHits[i] != null && treeviewNodeHits[i].TreeviewNode != null && 
+                                Helper.PointFValueIsInRange(point, treeviewNodeHits[i].HitArea.X, treeviewNodeHits[i].HitArea.X + 
+                                treeviewNodeHits[i].HitArea.Width, treeviewNodeHits[i].HitArea.Y, treeviewNodeHits[i].HitArea.Y + 
+                                treeviewNodeHits[i].HitArea.Height))
                             {
                                 if (treeviewNodeHits[i].HitAreaType == HitAreaType.ExpandCollapseButton)
                                 {
@@ -174,8 +163,8 @@ namespace MauiControlsLibrary
         private int DrawTreeviewNode(ICanvas canvas, TreeviewNode node, int level, int yOffset)
         {
             int levelIndent = level * PerLevelNodeLeftIndent - currentPanX;
-            SizeF nodeLabelSize = canvas.GetStringSize(node.Label, TreeviewNodeLabelFont, TreeviewNodeLabelFontSize);
-            Helper.SetFontAttributes(canvas, TreeviewNodeLabelFont, TreeviewNodeLabelColor, TreeviewNodeLabelFontSize);
+            SizeF nodeLabelSize = canvas.GetStringSize(node.Label, TreeviewNodeLabelFont.Font, TreeviewNodeLabelFont.FontSize);
+            Helper.SetFontAttributes(canvas, TreeviewNodeLabelFont);
             if (node.ChildNodes != null && node.ChildNodes.Length > 0)
             {
                 int heightOffset = yOffset + (TreeviewNodeHeight - ExpandCollapseButtonWidthHeight) / 2 - currentPanY;

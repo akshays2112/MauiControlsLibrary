@@ -3,11 +3,7 @@
     public class MCLRadioButtonGroup : GraphicsView, IDrawable
     {
         public string[] Labels { get; set; } = Array.Empty<string>();
-        public Microsoft.Maui.Graphics.Font RadioButtonGroupTextFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color RadioButtonGroupTextColor { get; set; } = Colors.Black;
-        public int RadioButtonGroupTextFontSize { get; set; } = 18;
-        public HorizontalAlignment RadioButtonGroupTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment RadioButtonGroupTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties RadioButtonGroupFont { get; set; } = new();
         public bool ArrangeHorizontal { get; set; } = true;
         public int RadioButtonRadius { get; set; } = 7;
         public int SpacingBetweenLabelAndRadioButton { get; set; } = 20;
@@ -40,14 +36,13 @@
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (RadioButtonsCenters != null && RadioButtonsCenters.Length > 0 && point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y <= this.Height)
+                if (RadioButtonsCenters != null && RadioButtonsCenters.Length > 0 && Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
                 {
                     bool found = false;
                     for(int i=0; i < RadioButtonsCenters.Length; i++)
                     {
-                        if(point.Value.X <= RadioButtonsCenters[i].X + RadioButtonRadius && point.Value.X >= RadioButtonsCenters[i].X - RadioButtonRadius &&
-                            point.Value.Y <= RadioButtonsCenters[i].Y + RadioButtonRadius && point.Value.Y >= RadioButtonsCenters[i].Y - RadioButtonRadius)
+                        if(Helper.PointFValueIsInRange(point, RadioButtonsCenters[i].X - RadioButtonRadius, RadioButtonsCenters[i].X + RadioButtonRadius,
+                            RadioButtonsCenters[i].Y - RadioButtonRadius, RadioButtonsCenters[i].Y + RadioButtonRadius))
                         {
                             SelectedRadioButtonIndex = i;
                             found = true;
@@ -78,11 +73,11 @@
             canvas.DrawRoundedRectangle(new RectF(0, 0, (float)this.Width, (float)this.Height), RadioButtonGroupCornerRadius);
             for (int i = 0; i < Labels.Length; i++)
             {
-                SizeF labelSizeF = canvas.GetStringSize(Labels[i], RadioButtonGroupTextFont, RadioButtonGroupTextFontSize);
-                Helper.SetFontAttributes(canvas, RadioButtonGroupTextFont, RadioButtonGroupTextColor, RadioButtonGroupTextFontSize);
-                canvas.DrawString(Labels[i], ArrangeHorizontal ? offset : 0, ArrangeHorizontal ? 0 : offset, labelSizeF.Width + RadioButtonGroupTextFontSize,
-                    ArrangeHorizontal ? (float)this.Height : (float)(this.Height / (double)Labels.Length), RadioButtonGroupTextHorizontalAlignment,
-                    RadioButtonGroupTextVerticalAlignment); ;
+                SizeF labelSizeF = canvas.GetStringSize(Labels[i], RadioButtonGroupFont.Font, RadioButtonGroupFont.FontSize);
+                Helper.SetFontAttributes(canvas, RadioButtonGroupFont);
+                canvas.DrawString(Labels[i], ArrangeHorizontal ? offset : 0, ArrangeHorizontal ? 0 : offset, labelSizeF.Width + RadioButtonGroupFont.FontSize,
+                    ArrangeHorizontal ? (float)this.Height : (float)(this.Height / (double)Labels.Length), RadioButtonGroupFont.HorizontalAlignment,
+                    RadioButtonGroupFont.VerticalAlignment);
                 canvas.StrokeColor = Colors.Grey;
                 PointF radioButtonCenter = new PointF(ArrangeHorizontal ? offset + labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius :
                     labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius, (ArrangeHorizontal ? (float)this.Height / 2F :

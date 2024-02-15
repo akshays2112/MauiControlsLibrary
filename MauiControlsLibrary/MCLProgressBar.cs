@@ -41,11 +41,7 @@ namespace MauiControlsLibrary
         public Color ProgressBarBackgroundColor { get; set; } = Colors.Grey;
         public Color ProgressBarColor { get; set; } = Colors.Green;
         public int RoundedRectangleRadius { get; set; } = 5;
-        public Microsoft.Maui.Graphics.Font LabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color LabelColor { get; set; } = Colors.Black;
-        public int LabelFontSize { get; set; } = 18;
-        public HorizontalAlignment LabelHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment LabelVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties LabelFont { get; set; } = new();
         public Microsoft.Maui.Graphics.IImage? ProgressBarBackgroundImage { get; set; }
         public Microsoft.Maui.Graphics.IImage? ProgressBarImage { get; set; }
         public bool ClipProgressBarImage { get; set; } = true;
@@ -74,8 +70,7 @@ namespace MauiControlsLibrary
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y < this.Height)
+                if (Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
                 {
                     if (OnMCLProgressBarTapped != null)
                         OnMCLProgressBarTapped(this, new MCLProgressBarEventArgs(e, minValue, maxValue, currentValue));
@@ -125,21 +120,15 @@ namespace MauiControlsLibrary
                         (float)(ArrangeHorizontal ? this.Height : progressBarFillLengthInPixels)), RoundedRectangleRadius);
                 }
             }
-            Helper.SetFontAttributes(canvas, LabelFont, LabelColor, LabelFontSize);
+            Helper.SetFontAttributes(canvas, LabelFont);
             canvas.DrawString($"{BeforeValueLabel}{currentValue}{AfterValueLabel}", 0, 0, (float)this.Width, (float)this.Height,
-                LabelHorizontalAlignment, LabelVerticalAlignment);
+                LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
         }
 
         public void LoadProgressBarImages(Assembly assembly, string? manifestResourcePathBackgroundImage, string? manifestResourcePathProgressBarImage)
         {
-            if (!string.IsNullOrEmpty(manifestResourcePathBackgroundImage))
-            {
-                ProgressBarBackgroundImage = Helper.LoadImage(assembly, manifestResourcePathBackgroundImage);
-            }
-            if (!string.IsNullOrEmpty(manifestResourcePathProgressBarImage))
-            {
-                ProgressBarImage = Helper.LoadImage(assembly, manifestResourcePathProgressBarImage);
-            }
+            ProgressBarBackgroundImage = Helper.LoadImage(assembly, manifestResourcePathBackgroundImage);
+            ProgressBarImage = Helper.LoadImage(assembly, manifestResourcePathProgressBarImage);
         }
     }
 }

@@ -29,15 +29,14 @@ namespace MauiControlsLibrary
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y < this.Height)
+                if (Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
                 {
 
                     List<int> tappedImageAreasIndexes = new();
                     for (int i = 0; ImageTapAreas != null && i < ImageTapAreas.Length; i++)
                     {
-                        if (point.Value.X >= ImageTapAreas[i].X && point.Value.X <= ImageTapAreas[i].X + ImageTapAreas[i].Width &&
-                            point.Value.Y >= ImageTapAreas[i].Y && point.Value.Y <= ImageTapAreas[i].Y + ImageTapAreas[i].Height)
+                        if (Helper.PointFValueIsInRange(point, ImageTapAreas[i].X, ImageTapAreas[i].X + ImageTapAreas[i].Width,
+                            ImageTapAreas[i].Y, ImageTapAreas[i].Y + ImageTapAreas[i].Height))
                         {
                             tappedImageAreasIndexes.Add(i);
                         }

@@ -3,18 +3,10 @@
     public class MCLGrid : GraphicsView, IDrawable
     {
         public string[,]? Data { get; set; }
-        public Microsoft.Maui.Graphics.Font DataFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color DataFontColor { get; set; } = Colors.Black;
-        public int DataFontSize { get; set; } = 18;
-        public HorizontalAlignment DataTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment DataTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties DataFont { get; set; } = new();
 
         public string[]? HeaderNames { get; set; }
-        public Microsoft.Maui.Graphics.Font HeaderFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color HeaderFontColor { get; set; } = Colors.Black;
-        public int HeaderFontSize { get; set; } = 18;
-        public HorizontalAlignment HeaderTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment HeaderTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties HeaderFont { get; set; } = new();
         public int ColumnWidth { get; set; } = 100;
         public int DataRowHeight { get; set; } = 25;
         public int HeaderRowHeight { get; set; } = 50;
@@ -46,15 +38,9 @@
                 if (Data != null && e.StatusType == GestureStatus.Running)
                 {
                     currentPanY += (int)e.TotalY;
-                    if(currentPanY < 0)
-                        currentPanY = 0;
-                    if(currentPanY > (Data.GetLength(0) - 1) * DataRowHeight + HeaderRowHeight)
-                        currentPanY = (Data.GetLength(0) - 1) * DataRowHeight + HeaderRowHeight;
+                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (Data.GetLength(0) - 1) * DataRowHeight + HeaderRowHeight);
                     currentPanX += (int)e.TotalX;
-                    if(currentPanX < 0)
-                        currentPanX = 0;
-                    if (currentPanX > (Data.GetLength(1) - 1) * ColumnWidth)
-                        currentPanX = (Data.GetLength(1) - 1) * ColumnWidth;
+                    currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, (Data.GetLength(1) - 1) * ColumnWidth);
                     this.Invalidate();
                 }
             };
@@ -63,19 +49,13 @@
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Data != null && Data.Length > 0 && point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= HeaderRowHeight && point.Value.Y < this.Height)
+                if (Data != null && Data.Length > 0 && point.HasValue && Helper.PointFValueIsInRange(point, 0, this.Width, HeaderRowHeight, this.Height))
                 {
-                    int currentRowIndex = (int)Math.Floor(((decimal)currentPanY - HeaderRowHeight) / (decimal)DataRowHeight + (decimal)point.Value.Y / (decimal)DataRowHeight);
-                    if (currentRowIndex < 0)
-                        currentRowIndex = 0;
-                    if (currentRowIndex >= Data.GetLength(0) - 1)
-                        currentRowIndex = Data.GetLength(0) - 1;
+                    int currentRowIndex = (int)Math.Floor(((decimal)currentPanY - HeaderRowHeight) / (decimal)DataRowHeight + 
+                        (decimal)point.Value.Y / (decimal)DataRowHeight);
+                    currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, Data.GetLength(0) - 1);
                     int currentColIndex = (int)Math.Floor((decimal)currentPanX / (decimal)ColumnWidth + (decimal)point.Value.X / (decimal)ColumnWidth);
-                    if (currentColIndex < 0)
-                        currentColIndex = 0;
-                    if(currentColIndex >= Data.GetLength(1)  - 1)
-                        currentColIndex = Data.GetLength(1) - 1;
+                    currentColIndex = Helper.ValueResetOnBoundsCheck(currentColIndex, 0, Data.GetLength(1) - 1);
                     if (OnMCLGridTapped != null)
                         OnMCLGridTapped(this, new GridEventArgs(e, currentRowIndex, currentColIndex));
                     this.Invalidate();
@@ -93,16 +73,14 @@
             if (HeaderNames != null && HeaderNames.Length > 0)
             {
                 int colStart = (int)Math.Floor((decimal)currentPanX / (decimal)ColumnWidth);
-                if (colStart < 0)
-                    colStart = 0;
-                if (colStart > HeaderNames.Length - 1)
-                    colStart = HeaderNames.Length - 1;
+                colStart = Helper.ValueResetOnBoundsCheck(colStart, 0, HeaderNames.Length - 1);
                 for (int col = colStart; col < HeaderNames.Length; col++)
                 {
                     if (HeaderNames[col] != null)
                     {
-                        Helper.SetFontAttributes(canvas, HeaderFont, HeaderFontColor, HeaderFontSize);
-                        canvas.DrawString(HeaderNames[col], col * ColumnWidth - currentPanX, 0, ColumnWidth, HeaderRowHeight, HeaderTextHorizontalAlignment, HeaderTextVerticalAlignment);
+                        Helper.SetFontAttributes(canvas, HeaderFont);
+                        canvas.DrawString(HeaderNames[col], col * ColumnWidth - currentPanX, 0, ColumnWidth, HeaderRowHeight,
+                            HeaderFont.HorizontalAlignment, HeaderFont.VerticalAlignment);
                     }
                 }
             }
@@ -112,27 +90,21 @@
                 canvas.SaveState();
                 canvas.ClipRectangle(0, HeaderRowHeight, (float)this.Width, (float)this.Height - HeaderRowHeight);
                 int rowStart = (int)Math.Floor((decimal)currentPanY / (decimal)DataRowHeight);
-                if(rowStart < 0)
-                    rowStart = 0;
-                if(rowStart > Data.GetLength(0) - 1)
-                    rowStart = Data.GetLength(0) - 1;
+                rowStart = Helper.ValueResetOnBoundsCheck(rowStart, 0, Data.GetLength(0) - 1);
                 int colStart = (int)Math.Floor((decimal)currentPanX / (decimal)ColumnWidth);
-                if(colStart < 0)
-                    colStart = 0;
-                if(colStart > Data.GetLength(1) - 1)
-                    colStart = Data.GetLength(1) - 1;
+                colStart = Helper.ValueResetOnBoundsCheck(colStart, 0, Data.GetLength(1) - 1);
                 for(int row = rowStart; row < Data.GetLength(0) && row * DataRowHeight + HeaderRowHeight - currentPanY < this.Height; row++)
                 {
                     for(int col=colStart; col < Data.GetLength(1) && col * ColumnWidth - currentPanX < this.Width; col++)
                     {
                         if (Data[row, col] != null)
                         {
-                            Helper.SetFontAttributes(canvas, DataFont, DataFontColor, DataFontSize);
+                            Helper.SetFontAttributes(canvas, DataFont);
                             int rowOffset = row * DataRowHeight + HeaderRowHeight - currentPanY;
                             if(rowOffset < HeaderRowHeight && row == Data.GetLength(0) - 1)
                                 rowOffset = HeaderRowHeight;
                             canvas.DrawString(Data[row, col], col * ColumnWidth - currentPanX, rowOffset, ColumnWidth,
-                                DataRowHeight, DataTextHorizontalAlignment, DataTextVerticalAlignment);
+                                DataRowHeight, DataFont.HorizontalAlignment, DataFont.VerticalAlignment);
                         }
                     }
                 }

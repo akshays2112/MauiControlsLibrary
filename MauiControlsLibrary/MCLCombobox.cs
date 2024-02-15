@@ -2,19 +2,11 @@
 {
     public class MCLCombobox : GraphicsView, IDrawable
     {
-        public Microsoft.Maui.Graphics.Font TextboxFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color TextboxFontColor { get; set; } = Colors.Black;
-        public int TextboxFontSize { get; set; } = 18;
-        public HorizontalAlignment TextboxHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment TextboxVerticalAlignment { get; set; } = VerticalAlignment.Top;
+        public Helper.StandardFontPropterties TextboxFont { get; set; } = new(verticalAlignment: VerticalAlignment.Top);
 
         public string ButtonTextForListboxCollapsed { get; set; } = "▼";
         public string ButtonTextForListboxExpanded { get; set; } = "▲";
-        public Microsoft.Maui.Graphics.Font ButtonTextFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color ButtonTextColor { get; set; } = Colors.Black;
-        public int ButtonTextFontSize { get; set; } = 18;
-        public HorizontalAlignment ButtonTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment ButtonTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties ButtonFont { get; set; } = new();
         public Color ButtonColor { get; set; } = Colors.Green;
         public Color ButtonTappedColor { get; set; } = Colors.Red;
         public int ButtonWidth { get; set; } = 25;
@@ -24,11 +16,7 @@
         public bool ListboxVisible { get; set; } = false;
 
         public string[] Labels { get; set; } = Array.Empty<string>();
-        public Microsoft.Maui.Graphics.Font LabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color LabelFontColor { get; set; } = Colors.Black;
-        public int LabelFontSize { get; set; } = 18;
-        public HorizontalAlignment LabelTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment LabelTextVerticalAlignment { get; set; } = VerticalAlignment.Top;
+        public Helper.StandardFontPropterties LabelFont { get; set; } = new(verticalAlignment: VerticalAlignment.Top);
         public Color? LabelBackgroundColor { get; set; } = null;
         public int ListboxHeight { get; set; } = 200;
         public int RowHeight { get; set; } = 25;
@@ -56,9 +44,7 @@
             tapGestureRecognizerButton.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (point.HasValue && point.Value.X >= this.Width - ButtonWidth && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y < ButtonHeight)
-                {
+                if (Helper.PointFValueIsInRange(point, (int)this.Width - ButtonWidth, (int)this.Width, 0, ButtonHeight))                {
                     ButtonTapped = true;
                     ListboxVisible = !ListboxVisible;
                     if (ListboxVisible)
@@ -74,10 +60,7 @@
                 if (Labels != null && Labels.Length > 0 && e.StatusType == GestureStatus.Running)
                 {
                     currentPanY += (int)e.TotalY;
-                    if (currentPanY < 0)
-                        currentPanY = 0;
-                    if (currentPanY > (Labels.Length - 1) * RowHeight - ButtonHeight)
-                        currentPanY = (Labels.Length - 1) * RowHeight - ButtonHeight;
+                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (Labels.Length - 1) * RowHeight - ButtonHeight);
                     this.Invalidate();
                 }
             };
@@ -86,14 +69,11 @@
             tapGestureRecognizerListbox.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Labels != null && Labels.Length > 0 && point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= RowHeight && point.Value.Y < this.Height)
+                if (Labels != null && Labels.Length > 0 && point.HasValue && Helper.IntValueIsInRange((int)point.Value.X, 0, (int)this.Width)
+                    && Helper.IntValueIsInRange((int)point.Value.Y, RowHeight, (int)this.Height))
                 {
                     int currentRowIndex = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight + (decimal)point.Value.Y / (decimal)RowHeight);
-                    if (currentRowIndex < 0)
-                        currentRowIndex = 0;
-                    if (currentRowIndex >= Labels.Length - 1)
-                        currentRowIndex = Labels.Length - 1;
+                    currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, Labels.Length - 1);
                     SelectedItemIndex = currentRowIndex;
                     ListboxVisible = !ListboxVisible;
                     if (ListboxVisible)
@@ -114,8 +94,9 @@
             canvas.DrawRoundedRectangle(0, 0, (float)this.Width, ButtonHeight, ButtonCornerRadius);
             if(SelectedItemIndex >= 0 && SelectedItemIndex < Labels.Length)
             {
-                Helper.SetFontAttributes(canvas, TextboxFont, TextboxFontColor, TextboxFontSize);
-                canvas.DrawString(Labels[SelectedItemIndex], 0, 0, (float)this.Width - ButtonHeight, ButtonHeight, TextboxHorizontalAlignment, TextboxVerticalAlignment);
+                Helper.SetFontAttributes(canvas, TextboxFont);
+                canvas.DrawString(Labels[SelectedItemIndex], 0, 0, (float)this.Width - ButtonHeight, ButtonHeight, 
+                    TextboxFont.HorizontalAlignment, TextboxFont.VerticalAlignment);
             }
             if (ButtonTapped)
             {
@@ -134,17 +115,14 @@
                 canvas.SaveState();
                 canvas.ClipRectangle(0, ButtonHeight, (float)this.Width, (float)this.Height - ButtonHeight);
                 int rowStart = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight);
-                if (rowStart < 0)
-                    rowStart = 0;
-                if (rowStart > Labels.Length - 1)
-                    rowStart = Labels.Length - 1;
+                rowStart = Helper.ValueResetOnBoundsCheck(rowStart, 0, Labels.Length - 1);
                 for (int row = rowStart; row < Labels.Length && row * RowHeight - currentPanY < this.Height; row++)
                 {
                     if (Labels[row] != null)
                     {
-                        Helper.SetFontAttributes(canvas, LabelFont, LabelFontColor, LabelFontSize);
+                        Helper.SetFontAttributes(canvas, LabelFont);
                         canvas.DrawString(Labels[row], 0, row * RowHeight - currentPanY, (float)this.Width,
-                            RowHeight, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
+                            RowHeight, LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
                     }
                 }
                 canvas.ResetState();
@@ -157,9 +135,9 @@
             canvas.FillRoundedRectangle(new RectF((float)this.Width - ButtonHeight, 0, ButtonHeight, ButtonHeight), (float)ButtonCornerRadius);
             if (!string.IsNullOrEmpty(ButtonTextForListboxCollapsed))
             {
-                Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
+                Helper.SetFontAttributes(canvas, ButtonFont);
                 canvas.DrawString(ListboxVisible ? ButtonTextForListboxExpanded : ButtonTextForListboxCollapsed, (float)this.Width - ButtonHeight,
-                    0, ButtonHeight, ButtonHeight, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+                    0, ButtonHeight, ButtonHeight, ButtonFont.HorizontalAlignment, ButtonFont.VerticalAlignment);
             }
         }
     }

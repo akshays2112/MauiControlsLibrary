@@ -5,11 +5,7 @@ namespace MauiControlsLibrary
     public class MCLButton : GraphicsView, IDrawable
     {
         public string ButtonText { get; set; } = string.Empty;
-        public Microsoft.Maui.Graphics.Font ButtonTextFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color ButtonTextColor { get; set; } = Colors.Black;
-        public int ButtonTextFontSize { get; set; } = 18;
-        public HorizontalAlignment ButtonTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment ButtonTextVerticalAlignment { get; set; } = VerticalAlignment.Center;
+        public Helper.StandardFontPropterties ButtonTextFontProps { get; set; } = new();
         public Color ButtonColor { get; set; } = Colors.Green;
         public Color ButtonTappedColor { get; set; } = Colors.Red;
         public double ButtonCornerRadius { get; set; } = 5;
@@ -26,8 +22,7 @@ namespace MauiControlsLibrary
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if(point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y < this.Height)
+                if(Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
                 {
                     Tapped = true;
                     if (OnMCLButtonTapped != null)
@@ -96,22 +91,17 @@ namespace MauiControlsLibrary
             canvas.FillRoundedRectangle(new Rect(0, 0, this.Width, this.Height), ButtonCornerRadius);
             if (!string.IsNullOrEmpty(ButtonText))
             {
-                Helper.SetFontAttributes(canvas, ButtonTextFont, ButtonTextColor, ButtonTextFontSize);
-                canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextHorizontalAlignment, ButtonTextVerticalAlignment);
+                Helper.SetFontAttributes(canvas, ButtonTextFontProps);
+                canvas.DrawString(ButtonText, 0, 0, (float)this.Width, (float)this.Height, ButtonTextFontProps.HorizontalAlignment, 
+                    ButtonTextFontProps.VerticalAlignment);
             }
         }
 
         public void LoadButtonBackgroundImages(Assembly assembly, string? manifestResourcePathButtonBackgroundImageNotPressed, 
             string? manifestResourcePathButtonBackgroundPressedImage)
         {
-            if (!string.IsNullOrEmpty(manifestResourcePathButtonBackgroundImageNotPressed))
-            {
-                ButtonBackgroundNotPressedImage = Helper.LoadImage(assembly, manifestResourcePathButtonBackgroundImageNotPressed);
-            }
-            if (!string.IsNullOrEmpty(manifestResourcePathButtonBackgroundPressedImage))
-            {
-                ButtonBackgroundPressedImage = Helper.LoadImage(assembly, manifestResourcePathButtonBackgroundPressedImage);
-            }
+            ButtonBackgroundNotPressedImage = Helper.LoadImage(assembly, manifestResourcePathButtonBackgroundImageNotPressed);
+            ButtonBackgroundPressedImage = Helper.LoadImage(assembly, manifestResourcePathButtonBackgroundPressedImage);
         }
     }
 }

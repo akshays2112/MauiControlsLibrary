@@ -3,11 +3,7 @@
     public class MCLListbox : GraphicsView, IDrawable
     {
         public string[] Labels { get; set; } = Array.Empty<string>();
-        public Microsoft.Maui.Graphics.Font LabelFont { get; set; } = new Microsoft.Maui.Graphics.Font("Arial");
-        public Color LabelFontColor { get; set; } = Colors.Black;
-        public int LabelFontSize { get; set; } = 18;
-        public HorizontalAlignment LabelTextHorizontalAlignment { get; set; } = HorizontalAlignment.Center;
-        public VerticalAlignment LabelTextVerticalAlignment { get; set; } = VerticalAlignment.Top;
+        public Helper.StandardFontPropterties LabelFont { get; set; } = new(verticalAlignment: VerticalAlignment.Top);
         public Color? LabelBackgroundColor { get; set; } = null;
         public int RowHeight { get; set; } = 25;
         public event EventHandler<ListboxEventArgs>? OnMCLListboxTapped;
@@ -35,10 +31,7 @@
                 if (Labels != null && e.StatusType == GestureStatus.Running)
                 {
                     currentPanY += (int)e.TotalY;
-                    if (currentPanY < 0)
-                        currentPanY = 0;
-                    if (currentPanY > (Labels.Length - 1) * RowHeight)
-                        currentPanY = (Labels.Length - 1) * RowHeight;
+                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (Labels.Length - 1) * RowHeight);
                     this.Invalidate();
                 }
             };
@@ -47,14 +40,10 @@
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (point.HasValue && point.Value.X >= 0 && point.Value.X <= this.Width
-                    && point.Value.Y >= 0 && point.Value.Y < this.Height)
+                if (point.HasValue && Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
                 {
                     int currentIndex = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight + (decimal)point.Value.Y / (decimal)RowHeight);
-                    if (currentIndex < 0)
-                        currentIndex = 0;
-                    if (currentIndex >= Labels.Length)
-                        currentIndex = Labels.Length - 1;
+                    currentIndex = Helper.ValueResetOnBoundsCheck(currentIndex, 0, Labels.Length, moreThanMaxValueSet: Labels.Length - 1);
                     if (OnMCLListboxTapped != null)
                         OnMCLListboxTapped(this, new ListboxEventArgs(e, currentIndex));
                     this.Invalidate();
@@ -74,17 +63,14 @@
                 canvas.SaveState();
                 canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
                 int rowStart = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight);
-                if (rowStart < 0)
-                    rowStart = 0;
-                if (rowStart > Labels.Length - 1)
-                    rowStart = Labels.Length - 1;
+                rowStart = Helper.ValueResetOnBoundsCheck(rowStart, 0, Labels.Length - 1);
                 for (int row = rowStart; row < Labels.Length && row * RowHeight - currentPanY < this.Height; row++)
                 {
                     if (Labels[row] != null)
                     {
-                        Helper.SetFontAttributes(canvas, LabelFont, LabelFontColor, LabelFontSize);
+                        Helper.SetFontAttributes(canvas, LabelFont);
                         canvas.DrawString(Labels[row], 0, row * RowHeight - currentPanY, (float)this.Width,
-                            RowHeight, LabelTextHorizontalAlignment, LabelTextVerticalAlignment);
+                            RowHeight, LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
                     }
                 }
             }
