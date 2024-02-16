@@ -90,13 +90,9 @@ namespace MauiControlsLibrary
                                 if (treeviewNodeHits[i].HitAreaType == HitAreaType.ExpandCollapseButton)
                                 {
                                     if (treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState == ExpandCollapseButtonState.Collapsed)
-                                    {
                                         treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState = ExpandCollapseButtonState.Expanded;
-                                    }
                                     else
-                                    {
                                         treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState = ExpandCollapseButtonState.Collapsed;
-                                    }
                                     Invalidate();
                                     break;
                                 }
@@ -133,9 +129,7 @@ namespace MauiControlsLibrary
                 canvas.SaveState();
                 canvas.ClipRectangle(0, 0, (float)Width, (float)Height);
                 for (int i = 0; i < TreeviewNodes?.Length; i++)
-                {
                     yOffset = DrawTreeviewNode(canvas, TreeviewNodes[i], level, yOffset);
-                }
                 canvas.ResetState();
             }
         }
@@ -177,9 +171,7 @@ namespace MauiControlsLibrary
             if (node.ChildNodes != null && node.ExpandCollapseButtonState == ExpandCollapseButtonState.Expanded)
             {
                 for (int i = 0; i < node.ChildNodes.Length; i++)
-                {
                     yOffset = DrawTreeviewNode(canvas, node.ChildNodes[i], level + 1, yOffset);
-                }
             }
             if (yOffset > maxTreeviewNodesHeight)
                 maxTreeviewNodesHeight = yOffset;

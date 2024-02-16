@@ -29,9 +29,7 @@ namespace MauiControlsLibrary
                     {
                         if (Helper.PointFValueIsInRange(point, ImageTapAreas[i].X, ImageTapAreas[i].X + ImageTapAreas[i].Width,
                             ImageTapAreas[i].Y, ImageTapAreas[i].Y + ImageTapAreas[i].Height))
-                        {
                             tappedImageAreasIndexes.Add(i);
-                        }
                     }
                     OnMCLImageTapped?.Invoke(this, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
                     Invalidate();
@@ -43,9 +41,7 @@ namespace MauiControlsLibrary
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
             if (Image != null)
-            {
                 canvas.DrawImage(Image, 0, 0, Image.Width, Image.Height);
-            }
         }
 
         public void LoadImage(Assembly assembly, string manifestResourcePath)

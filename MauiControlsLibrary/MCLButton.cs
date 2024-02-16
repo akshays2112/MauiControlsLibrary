@@ -5,10 +5,10 @@ namespace MauiControlsLibrary
     public class MCLButton : GraphicsView, IDrawable
     {
         public string ButtonText { get; set; } = string.Empty;
-        public Helper.StandardFontPropterties ButtonLabelFont { get; set; } = new();
         public Color ButtonColor { get; set; } = Colors.Green;
         public Color ButtonTappedColor { get; set; } = Colors.Red;
         public double ButtonCornerRadius { get; set; } = 5;
+        public Helper.StandardFontPropterties ButtonLabelFont { get; set; } = new();
         public event EventHandler<EventArgs>? OnMCLButtonTapped;
         public bool Tapped { get; set; } = false;
 
@@ -38,9 +38,7 @@ namespace MauiControlsLibrary
                 Invalidate();
             }
             else
-            {
                 DrawButton(canvas, ButtonColor);
-            }
         }
 
         private void DrawButton(ICanvas canvas, Color color)

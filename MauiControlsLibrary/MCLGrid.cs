@@ -95,9 +95,7 @@
                             Helper.SetFontAttributes(canvas, DataFont);
                             int rowOffset = (row * DataRowHeight) + HeaderRowHeight - currentPanY;
                             if (rowOffset < HeaderRowHeight && row == Data.GetLength(0) - 1)
-                            {
                                 rowOffset = HeaderRowHeight;
-                            }
                             canvas.DrawString(Data[row, col], (col * ColumnWidth) - currentPanX, rowOffset, ColumnWidth,
                                 DataRowHeight, DataFont.HorizontalAlignment, DataFont.VerticalAlignment);
                         }

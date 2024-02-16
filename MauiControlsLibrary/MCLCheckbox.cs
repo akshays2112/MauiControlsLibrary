@@ -27,7 +27,7 @@
             GestureRecognizers.Add(tapGestureRecognizer);
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             canvas.FillColor = CheckboxColor;
             canvas.FillRoundedRectangle(new Rect(0, 0, Width, Height), CheckboxCornerRadius);

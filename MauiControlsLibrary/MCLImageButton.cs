@@ -9,6 +9,11 @@ namespace MauiControlsLibrary
 {
     public class MCLImageButton : MCLButton
     {
+        public new string? ButtonText { get; }
+        public new Color? ButtonColor { get; }
+        public new Color? ButtonTappedColor { get; }
+        public new double? ButtonCornerRadius { get; }
+        public new Helper.StandardFontPropterties? ButtonLabelFont { get; }
         public Microsoft.Maui.Graphics.IImage? ButtonBackgroundNotPressedImage { get; set; }
         public Microsoft.Maui.Graphics.IImage? ButtonBackgroundPressedImage { get; set; }
         public bool ClipButtonBackgroundImage { get; set; } = true;
@@ -29,9 +34,7 @@ namespace MauiControlsLibrary
                             ButtonBackgroundPressedImage.Height);
                     }
                     else
-                    {
                         canvas.DrawImage(ButtonBackgroundPressedImage, 0, 0, (float)Width, (float)Height);
-                    }
                     canvas.ResetState();
                     Invalidate();
                 }
@@ -47,9 +50,7 @@ namespace MauiControlsLibrary
                         ButtonBackgroundNotPressedImage.Height);
                 }
                 else
-                {
                     canvas.DrawImage(ButtonBackgroundNotPressedImage, 0, 0, (float)Width, (float)Height);
-                }
                 canvas.ResetState();
             }
         }

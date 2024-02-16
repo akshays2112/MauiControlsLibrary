@@ -15,10 +15,7 @@
         public Helper.StandardFontPropterties LabelFont { get; set; } = new();
         public Color? LabelBackgroundColor { get; set; } = null;
 
-        public MCLLabel()
-        {
-            Drawable = this;
-        }
+        public MCLLabel() => Drawable = this;
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
