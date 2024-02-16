@@ -8,68 +8,61 @@
         public int RowHeight { get; set; } = 25;
         public event EventHandler<ListboxEventArgs>? OnMCLListboxTapped;
 
-        public class ListboxEventArgs
+        public class ListboxEventArgs(EventArgs? eventArgs, int currentIndex) : EventArgs
         {
-            public EventArgs? EventArgs { get; set; }
-            public int CurrentIndex { get; set; }
-
-            public ListboxEventArgs(EventArgs? eventArgs, int currentIndex)
-            {
-                EventArgs = eventArgs;
-                CurrentIndex = currentIndex;
-            }
+            public EventArgs? EventArgs { get; set; } = eventArgs;
+            public int CurrentIndex { get; set; } = currentIndex;
         }
 
         private int currentPanY = 0;
 
         public MCLListbox()
         {
-            this.Drawable = this;
-            PanGestureRecognizer panGesture = new PanGestureRecognizer();
+            Drawable = this;
+            PanGestureRecognizer panGesture = new();
             panGesture.PanUpdated += (s, e) =>
             {
                 if (Labels != null && e.StatusType == GestureStatus.Running)
                 {
                     currentPanY += (int)e.TotalY;
                     currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (Labels.Length - 1) * RowHeight);
-                    this.Invalidate();
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(panGesture);
-            TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
+            GestureRecognizers.Add(panGesture);
+            TapGestureRecognizer tapGestureRecognizer = new();
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (point.HasValue && Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
+                if (point.HasValue && Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
                 {
-                    int currentIndex = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight + (decimal)point.Value.Y / (decimal)RowHeight);
+                    int currentIndex = (int)Math.Floor((currentPanY / (decimal)RowHeight) + ((decimal)point.Value.Y / RowHeight));
                     currentIndex = Helper.ValueResetOnBoundsCheck(currentIndex, 0, Labels.Length, moreThanMaxValueSet: Labels.Length - 1);
-                    if (OnMCLListboxTapped != null)
-                        OnMCLListboxTapped(this, new ListboxEventArgs(e, currentIndex));
-                    this.Invalidate();
+                    OnMCLListboxTapped?.Invoke(this, new ListboxEventArgs(e, currentIndex));
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(tapGestureRecognizer);
+            GestureRecognizers.Add(tapGestureRecognizer);
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
             canvas.StrokeColor = Colors.Grey;
-            canvas.DrawRectangle(new Rect(0, 0, this.Width, this.Height));
+            canvas.DrawRectangle(new Rect(0, 0, Width, Height));
             canvas.SaveState();
-            canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
-            if (Labels != null && Labels.Length > 0)
+            canvas.ClipRectangle(0, 0, (float)Width, (float)Height);
+            if (Helper.ArrayNotNullOrEmpty(Labels))
             {
                 canvas.SaveState();
-                canvas.ClipRectangle(0, 0, (float)this.Width, (float)this.Height);
-                int rowStart = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight);
+                canvas.ClipRectangle(0, 0, (float)Width, (float)Height);
+                int rowStart = (int)Math.Floor(currentPanY / (decimal)RowHeight);
                 rowStart = Helper.ValueResetOnBoundsCheck(rowStart, 0, Labels.Length - 1);
-                for (int row = rowStart; row < Labels.Length && row * RowHeight - currentPanY < this.Height; row++)
+                for (int row = rowStart; row < Labels.Length && (row * RowHeight) - currentPanY < Height; row++)
                 {
                     if (Labels[row] != null)
                     {
                         Helper.SetFontAttributes(canvas, LabelFont);
-                        canvas.DrawString(Labels[row], 0, row * RowHeight - currentPanY, (float)this.Width,
+                        canvas.DrawString(Labels[row], 0, (row * RowHeight) - currentPanY, (float)Width,
                             RowHeight, LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
                     }
                 }

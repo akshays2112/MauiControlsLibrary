@@ -25,103 +25,92 @@
         public event EventHandler<ComboboxEventArgs>? SelectedItemChanged;
         private int currentPanY = 0;
 
-        public class ComboboxEventArgs : EventArgs
+        public class ComboboxEventArgs(EventArgs? eventArgs, int selectedIndex) : EventArgs
         {
-            public EventArgs? EventArgs { get; set; }
-            public int SelectedIndex { get; set; }
-
-            public ComboboxEventArgs(EventArgs? eventArgs, int selectedIndex)
-            {
-                EventArgs = eventArgs;
-                SelectedIndex = selectedIndex;
-            }
+            public EventArgs? EventArgs { get; set; } = eventArgs;
+            public int SelectedIndex { get; set; } = selectedIndex;
         }
 
         public MCLCombobox()
         {
-            this.Drawable = this;
-            TapGestureRecognizer tapGestureRecognizerButton = new TapGestureRecognizer();
+            Drawable = this;
+            TapGestureRecognizer tapGestureRecognizerButton = new();
             tapGestureRecognizerButton.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Helper.PointFValueIsInRange(point, (int)this.Width - ButtonWidth, (int)this.Width, 0, ButtonHeight))                {
+                if (Helper.PointFValueIsInRange(point, (int)Width - ButtonWidth, (int)Width, 0, ButtonHeight))
+                {
                     ButtonTapped = true;
                     ListboxVisible = !ListboxVisible;
-                    if (ListboxVisible)
-                        this.HeightRequest = ButtonHeight + ListboxHeight;
-                    else
-                        this.HeightRequest = ButtonHeight;
-                    this.Invalidate();
+                    HeightRequest = ListboxVisible ? ButtonHeight + ListboxHeight : ButtonHeight;
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(tapGestureRecognizerButton);
-            PanGestureRecognizer panGesture = new PanGestureRecognizer();
-            panGesture.PanUpdated += (s, e) => {
-                if (Labels != null && Labels.Length > 0 && e.StatusType == GestureStatus.Running)
+            GestureRecognizers.Add(tapGestureRecognizerButton);
+            PanGestureRecognizer panGesture = new();
+            panGesture.PanUpdated += (s, e) =>
+            {
+                if (Helper.ArrayNotNullOrEmpty(Labels) && e.StatusType == GestureStatus.Running)
                 {
                     currentPanY += (int)e.TotalY;
-                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (Labels.Length - 1) * RowHeight - ButtonHeight);
-                    this.Invalidate();
+                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, ((Labels.Length - 1) * RowHeight) - ButtonHeight);
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(panGesture);
-            TapGestureRecognizer tapGestureRecognizerListbox = new TapGestureRecognizer();
+            GestureRecognizers.Add(panGesture);
+            TapGestureRecognizer tapGestureRecognizerListbox = new();
             tapGestureRecognizerListbox.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Labels != null && Labels.Length > 0 && point.HasValue && Helper.IntValueIsInRange((int)point.Value.X, 0, (int)this.Width)
-                    && Helper.IntValueIsInRange((int)point.Value.Y, RowHeight, (int)this.Height))
+                if (Helper.ArrayNotNullOrEmpty(Labels) && point.HasValue && Helper.IntValueIsInRange((int)point.Value.X, 0, (int)Width)
+                    && Helper.IntValueIsInRange((int)point.Value.Y, RowHeight, (int)Height))
                 {
-                    int currentRowIndex = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight + (decimal)point.Value.Y / (decimal)RowHeight);
+                    int currentRowIndex = (int)Math.Floor((currentPanY / (decimal)RowHeight) + ((decimal)point.Value.Y / RowHeight));
                     currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, Labels.Length - 1);
                     SelectedItemIndex = currentRowIndex;
                     ListboxVisible = !ListboxVisible;
-                    if (ListboxVisible)
-                        this.HeightRequest = ButtonHeight + ListboxHeight;
-                    else
-                        this.HeightRequest = ButtonHeight;
-                    if (SelectedItemChanged != null)
-                        SelectedItemChanged(this, new ComboboxEventArgs(e, currentRowIndex));
-                    this.Invalidate();
+                    HeightRequest = ListboxVisible ? ButtonHeight + ListboxHeight : ButtonHeight;
+                    SelectedItemChanged?.Invoke(this, new ComboboxEventArgs(e, currentRowIndex));
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(tapGestureRecognizerListbox);
+            GestureRecognizers.Add(tapGestureRecognizerListbox);
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
             canvas.StrokeColor = Colors.Grey;
-            canvas.DrawRoundedRectangle(0, 0, (float)this.Width, ButtonHeight, ButtonCornerRadius);
-            if(SelectedItemIndex >= 0 && SelectedItemIndex < Labels.Length)
+            canvas.DrawRoundedRectangle(0, 0, (float)Width, ButtonHeight, ButtonCornerRadius);
+            if (SelectedItemIndex >= 0 && SelectedItemIndex < Labels.Length)
             {
                 Helper.SetFontAttributes(canvas, TextboxFont);
-                canvas.DrawString(Labels[SelectedItemIndex], 0, 0, (float)this.Width - ButtonHeight, ButtonHeight, 
+                canvas.DrawString(Labels[SelectedItemIndex], 0, 0, (float)Width - ButtonHeight, ButtonHeight,
                     TextboxFont.HorizontalAlignment, TextboxFont.VerticalAlignment);
             }
             if (ButtonTapped)
             {
                 ButtonTapped = false;
-                DrawButton(canvas, this.ButtonTappedColor);
-                this.Invalidate();
+                DrawButton(canvas, ButtonTappedColor);
+                Invalidate();
             }
             else
             {
-                DrawButton(canvas, this.ButtonColor);
+                DrawButton(canvas, ButtonColor);
             }
-            if (ListboxVisible && Labels != null && Labels.Length > 0)
+            if (ListboxVisible && Helper.ArrayNotNullOrEmpty(Labels))
             {
                 canvas.StrokeColor = Colors.Grey;
-                canvas.DrawRectangle(new Rect(0, ButtonHeight, this.Width, this.Height - ButtonHeight));
+                canvas.DrawRectangle(new Rect(0, ButtonHeight, Width, Height - ButtonHeight));
                 canvas.SaveState();
-                canvas.ClipRectangle(0, ButtonHeight, (float)this.Width, (float)this.Height - ButtonHeight);
-                int rowStart = (int)Math.Floor((decimal)currentPanY / (decimal)RowHeight);
+                canvas.ClipRectangle(0, ButtonHeight, (float)Width, (float)Height - ButtonHeight);
+                int rowStart = (int)Math.Floor(currentPanY / (decimal)RowHeight);
                 rowStart = Helper.ValueResetOnBoundsCheck(rowStart, 0, Labels.Length - 1);
-                for (int row = rowStart; row < Labels.Length && row * RowHeight - currentPanY < this.Height; row++)
+                for (int row = rowStart; row < Labels.Length && (row * RowHeight) - currentPanY < Height; row++)
                 {
                     if (Labels[row] != null)
                     {
                         Helper.SetFontAttributes(canvas, LabelFont);
-                        canvas.DrawString(Labels[row], 0, row * RowHeight - currentPanY, (float)this.Width,
+                        canvas.DrawString(Labels[row], 0, (row * RowHeight) - currentPanY, (float)Width,
                             RowHeight, LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
                     }
                 }
@@ -132,11 +121,11 @@
         private void DrawButton(ICanvas canvas, Color color)
         {
             canvas.FillColor = color;
-            canvas.FillRoundedRectangle(new RectF((float)this.Width - ButtonHeight, 0, ButtonHeight, ButtonHeight), (float)ButtonCornerRadius);
+            canvas.FillRoundedRectangle(new RectF((float)Width - ButtonHeight, 0, ButtonHeight, ButtonHeight), ButtonCornerRadius);
             if (!string.IsNullOrEmpty(ButtonTextForListboxCollapsed))
             {
                 Helper.SetFontAttributes(canvas, ButtonFont);
-                canvas.DrawString(ListboxVisible ? ButtonTextForListboxExpanded : ButtonTextForListboxCollapsed, (float)this.Width - ButtonHeight,
+                canvas.DrawString(ListboxVisible ? ButtonTextForListboxExpanded : ButtonTextForListboxCollapsed, (float)Width - ButtonHeight,
                     0, ButtonHeight, ButtonHeight, ButtonFont.HorizontalAlignment, ButtonFont.VerticalAlignment);
             }
         }

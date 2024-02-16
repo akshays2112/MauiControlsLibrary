@@ -17,31 +17,25 @@
 
         private PointF[]? RadioButtonsCenters;
 
-        public class RadioButtonGroupEventArgs
+        public class RadioButtonGroupEventArgs(EventArgs? eventArgs, int selectedIndex) : EventArgs
         {
-            public EventArgs? EventArgs { get; set; }
-            public int SelectedRadioButtonIndex { get; set; }
-
-            public RadioButtonGroupEventArgs(EventArgs? eventArgs, int selectedIndex)
-            {
-                EventArgs = eventArgs;
-                SelectedRadioButtonIndex = selectedIndex;
-            }
+            public EventArgs? EventArgs { get; set; } = eventArgs;
+            public int SelectedRadioButtonIndex { get; set; } = selectedIndex;
         }
 
         public MCLRadioButtonGroup()
         {
-            this.Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
+            Drawable = this;
+            TapGestureRecognizer tapGestureRecognizer = new();
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (RadioButtonsCenters != null && RadioButtonsCenters.Length > 0 && Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
+                if (Helper.ArrayNotNullOrEmpty(RadioButtonsCenters) && Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
                 {
                     bool found = false;
-                    for(int i=0; i < RadioButtonsCenters.Length; i++)
+                    for (int i = 0; i < RadioButtonsCenters.Length; i++)
                     {
-                        if(Helper.PointFValueIsInRange(point, RadioButtonsCenters[i].X - RadioButtonRadius, RadioButtonsCenters[i].X + RadioButtonRadius,
+                        if (Helper.PointFValueIsInRange(point, RadioButtonsCenters[i].X - RadioButtonRadius, RadioButtonsCenters[i].X + RadioButtonRadius,
                             RadioButtonsCenters[i].Y - RadioButtonRadius, RadioButtonsCenters[i].Y + RadioButtonRadius))
                         {
                             SelectedRadioButtonIndex = i;
@@ -51,46 +45,48 @@
                     }
                     if (found)
                     {
-                        if (OnMCLRadioButtonGroupTapped != null)
-                            OnMCLRadioButtonGroupTapped(this, new RadioButtonGroupEventArgs(e, SelectedRadioButtonIndex));
-                        this.Invalidate();
+                        OnMCLRadioButtonGroupTapped?.Invoke(this, new RadioButtonGroupEventArgs(e, SelectedRadioButtonIndex));
+                        Invalidate();
                     }
                 }
             };
-            this.GestureRecognizers.Add(tapGestureRecognizer);
+            GestureRecognizers.Add(tapGestureRecognizer);
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
             int offset = 0;
             RadioButtonsCenters = new PointF[Labels.Length];
-            if(RadioButtonGroupBackgroundColor != null)
+            if (RadioButtonGroupBackgroundColor != null)
             {
                 canvas.FillColor = RadioButtonGroupBackgroundColor;
-                canvas.FillRoundedRectangle(new RectF(0, 0, (float)this.Width, (float)this.Height), RadioButtonGroupCornerRadius);
+                canvas.FillRoundedRectangle(new RectF(0, 0, (float)Width, (float)Height), RadioButtonGroupCornerRadius);
             }
             canvas.StrokeColor = RadioButtonGroupBorderColor;
-            canvas.DrawRoundedRectangle(new RectF(0, 0, (float)this.Width, (float)this.Height), RadioButtonGroupCornerRadius);
-            for (int i = 0; i < Labels.Length; i++)
+            canvas.DrawRoundedRectangle(new RectF(0, 0, (float)Width, (float)Height), RadioButtonGroupCornerRadius);
+            if (Helper.ArrayNotNullOrEmpty(Labels))
             {
-                SizeF labelSizeF = canvas.GetStringSize(Labels[i], RadioButtonGroupFont.Font, RadioButtonGroupFont.FontSize);
-                Helper.SetFontAttributes(canvas, RadioButtonGroupFont);
-                canvas.DrawString(Labels[i], ArrangeHorizontal ? offset : 0, ArrangeHorizontal ? 0 : offset, labelSizeF.Width + RadioButtonGroupFont.FontSize,
-                    ArrangeHorizontal ? (float)this.Height : (float)(this.Height / (double)Labels.Length), RadioButtonGroupFont.HorizontalAlignment,
-                    RadioButtonGroupFont.VerticalAlignment);
-                canvas.StrokeColor = Colors.Grey;
-                PointF radioButtonCenter = new PointF(ArrangeHorizontal ? offset + labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius :
-                    labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius, (ArrangeHorizontal ? (float)this.Height / 2F :
-                    offset + (float)(this.Height / (double)Labels.Length) / 2F));
-                RadioButtonsCenters[i] = radioButtonCenter;
-                canvas.DrawCircle(radioButtonCenter, RadioButtonRadius);
-                if(SelectedRadioButtonIndex == i)
+                for (int i = 0; i < Labels.Length; i++)
                 {
-                    canvas.FillColor = RadioButtonColor;
-                    canvas.FillCircle(radioButtonCenter, RadioButtonRadius - 1);
+                    SizeF labelSizeF = canvas.GetStringSize(Labels[i], RadioButtonGroupFont.Font, RadioButtonGroupFont.FontSize);
+                    Helper.SetFontAttributes(canvas, RadioButtonGroupFont);
+                    canvas.DrawString(Labels[i], ArrangeHorizontal ? offset : 0, ArrangeHorizontal ? 0 : offset, labelSizeF.Width + RadioButtonGroupFont.FontSize,
+                        ArrangeHorizontal ? (float)Height : (float)(Height / Labels.Length), RadioButtonGroupFont.HorizontalAlignment,
+                        RadioButtonGroupFont.VerticalAlignment);
+                    canvas.StrokeColor = Colors.Grey;
+                    PointF radioButtonCenter = new(ArrangeHorizontal ? offset + labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius :
+                        labelSizeF.Width + SpacingBetweenLabelAndRadioButton + RadioButtonRadius, ArrangeHorizontal ? (float)Height / 2F :
+                        offset + ((float)(Height / Labels.Length) / 2F));
+                    RadioButtonsCenters[i] = radioButtonCenter;
+                    canvas.DrawCircle(radioButtonCenter, RadioButtonRadius);
+                    if (SelectedRadioButtonIndex == i)
+                    {
+                        canvas.FillColor = RadioButtonColor;
+                        canvas.FillCircle(radioButtonCenter, RadioButtonRadius - 1);
+                    }
+                    offset += (int)(ArrangeHorizontal ? labelSizeF.Width + SpacingBetweenLabelAndRadioButton + (2 * RadioButtonRadius) + SpacingBetweenRadioButtons :
+                        (float)(Height / Labels.Length));
                 }
-                offset += (int)(ArrangeHorizontal ? labelSizeF.Width + SpacingBetweenLabelAndRadioButton + 2 * RadioButtonRadius + SpacingBetweenRadioButtons :
-                    (float)(this.Height / (double)Labels.Length));
             }
         }
     }

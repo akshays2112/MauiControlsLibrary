@@ -1,5 +1,4 @@
-﻿using Microsoft.Maui.Graphics.Platform;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace MauiControlsLibrary
 {
@@ -12,7 +11,7 @@ namespace MauiControlsLibrary
             set
             {
                 minValue = value;
-                this.Invalidate();
+                Invalidate();
             }
         }
         private decimal maxValue = 100;
@@ -22,17 +21,17 @@ namespace MauiControlsLibrary
             set
             {
                 maxValue = value;
-                this.Invalidate();
+                Invalidate();
             }
         }
         private decimal currentValue = 0;
-        public decimal CurrentValue 
-        { 
+        public decimal CurrentValue
+        {
             get => currentValue;
             set
             {
                 currentValue = value;
-                this.Invalidate();
+                Invalidate();
             }
         }
         public string? BeforeValueLabel { get; set; } = "";
@@ -47,81 +46,72 @@ namespace MauiControlsLibrary
         public bool ClipProgressBarImage { get; set; } = true;
         public event EventHandler<MCLProgressBarEventArgs>? OnMCLProgressBarTapped;
 
-        public class MCLProgressBarEventArgs
+        public class MCLProgressBarEventArgs(EventArgs? eventArgs, decimal minValue, decimal maxValue, decimal currentValue) : EventArgs
         {
-            public EventArgs? EventArgs { get; set; }
-            public decimal MinValue { get; set; }
-            public decimal MaxValue { get; set; }
-            public decimal CurrentValue { get; set; }
-
-            public MCLProgressBarEventArgs(EventArgs? eventArgs, decimal minValue, decimal maxValue, decimal currentValue)
-            {
-                EventArgs = eventArgs;
-                MinValue = minValue;
-                MaxValue = maxValue;
-                CurrentValue = currentValue;
-            }
+            public EventArgs? EventArgs { get; set; } = eventArgs;
+            public decimal MinValue { get; set; } = minValue;
+            public decimal MaxValue { get; set; } = maxValue;
+            public decimal CurrentValue { get; set; } = currentValue;
         }
 
-        public MCLProgressBar() 
+        public MCLProgressBar()
         {
-            this.Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
+            Drawable = this;
+            TapGestureRecognizer tapGestureRecognizer = new();
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
+                if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
                 {
-                    if (OnMCLProgressBarTapped != null)
-                        OnMCLProgressBarTapped(this, new MCLProgressBarEventArgs(e, minValue, maxValue, currentValue));
-                    this.Invalidate();
+                    OnMCLProgressBarTapped?.Invoke(this, new MCLProgressBarEventArgs(e, minValue, maxValue, currentValue));
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(tapGestureRecognizer);
+            GestureRecognizers.Add(tapGestureRecognizer);
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
-            if(ProgressBarBackgroundImage != null)
+            if (ProgressBarBackgroundImage != null)
             {
-                canvas.DrawImage(ProgressBarImage, 0, 0, (float)this.Width, (float)this.Height);
+                canvas.DrawImage(ProgressBarImage, 0, 0, (float)Width, (float)Height);
             }
             else
             {
                 canvas.FillColor = ProgressBarBackgroundColor;
-                canvas.FillRoundedRectangle(new RectF(0, 0, (float)this.Width, (float)this.Height), RoundedRectangleRadius);
+                canvas.FillRoundedRectangle(new RectF(0, 0, (float)Width, (float)Height), RoundedRectangleRadius);
             }
-            int progressBarFillLengthInPixels = (int)((currentValue * (ArrangeHorizontal ? (decimal)this.Width : (decimal)this.Height)) / (maxValue - minValue));
-            if (currentValue > minValue) 
+            int progressBarFillLengthInPixels = (int)(currentValue * (ArrangeHorizontal ? (decimal)Width : (decimal)Height) / (maxValue - minValue));
+            if (currentValue > minValue)
             {
                 if (ProgressBarImage != null)
                 {
                     canvas.SaveState();
-                    canvas.ClipRectangle(new RectF(0, (float)(ArrangeHorizontal ? 0 : this.Height - progressBarFillLengthInPixels),
-                        (float)(ArrangeHorizontal ? progressBarFillLengthInPixels : this.Width),
-                        (float)(ArrangeHorizontal ? this.Height : progressBarFillLengthInPixels)));
+                    canvas.ClipRectangle(new RectF(0, (float)(ArrangeHorizontal ? 0 : Height - progressBarFillLengthInPixels),
+                        (float)(ArrangeHorizontal ? progressBarFillLengthInPixels : Width),
+                        (float)(ArrangeHorizontal ? Height : progressBarFillLengthInPixels)));
                     if (ClipProgressBarImage)
                     {
-                        canvas.DrawImage(ProgressBarImage, 0, 0, (float)this.Width, (float)this.Height);
+                        canvas.DrawImage(ProgressBarImage, 0, 0, (float)Width, (float)Height);
                     }
                     else
                     {
-                        canvas.DrawImage(ProgressBarImage, 0, (float)(ArrangeHorizontal ? 0 : this.Height - progressBarFillLengthInPixels),
-                            (float)(ArrangeHorizontal ? progressBarFillLengthInPixels : this.Width),
-                            (float)(ArrangeHorizontal ? this.Height : progressBarFillLengthInPixels));
+                        canvas.DrawImage(ProgressBarImage, 0, (float)(ArrangeHorizontal ? 0 : Height - progressBarFillLengthInPixels),
+                            (float)(ArrangeHorizontal ? progressBarFillLengthInPixels : Width),
+                            (float)(ArrangeHorizontal ? Height : progressBarFillLengthInPixels));
                     }
                     canvas.ResetState();
                 }
                 else
                 {
                     canvas.FillColor = ProgressBarColor;
-                    canvas.FillRoundedRectangle(new RectF(0, (float)(ArrangeHorizontal ? 0 : this.Height - progressBarFillLengthInPixels),
-                        (float)(ArrangeHorizontal ? progressBarFillLengthInPixels : this.Width),
-                        (float)(ArrangeHorizontal ? this.Height : progressBarFillLengthInPixels)), RoundedRectangleRadius);
+                    canvas.FillRoundedRectangle(new RectF(0, (float)(ArrangeHorizontal ? 0 : Height - progressBarFillLengthInPixels),
+                        (float)(ArrangeHorizontal ? progressBarFillLengthInPixels : Width),
+                        (float)(ArrangeHorizontal ? Height : progressBarFillLengthInPixels)), RoundedRectangleRadius);
                 }
             }
             Helper.SetFontAttributes(canvas, LabelFont);
-            canvas.DrawString($"{BeforeValueLabel}{currentValue}{AfterValueLabel}", 0, 0, (float)this.Width, (float)this.Height,
+            canvas.DrawString($"{BeforeValueLabel}{currentValue}{AfterValueLabel}", 0, 0, (float)Width, (float)Height,
                 LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
         }
 

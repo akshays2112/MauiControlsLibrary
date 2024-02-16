@@ -5,23 +5,14 @@ namespace MauiControlsLibrary
 {
     public static class Helper
     {
-        public class StandardFontPropterties
-        {
-            public Microsoft.Maui.Graphics.Font Font { get; set; }
-            public Color FontColor { get; set; }
-            public int FontSize { get; set; }
-            public HorizontalAlignment HorizontalAlignment { get; set; }
-            public VerticalAlignment VerticalAlignment { get; set; }
-
-            public StandardFontPropterties(Microsoft.Maui.Graphics.Font? font = null, Color? fontColor = null, int? fontSize = null, 
+        public class StandardFontPropterties(Microsoft.Maui.Graphics.Font? font = null, Color? fontColor = null, int? fontSize = null,
                 HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null)
-            {
-                Font = font ?? new Microsoft.Maui.Graphics.Font("Arial");
-                FontColor = fontColor ?? Colors.Black;
-                FontSize = fontSize ?? 18;
-                HorizontalAlignment = horizontalAlignment ?? HorizontalAlignment.Center;
-                VerticalAlignment = verticalAlignment ?? VerticalAlignment.Center;
-            }
+        {
+            public Microsoft.Maui.Graphics.Font Font { get; set; } = font ?? new Microsoft.Maui.Graphics.Font("Arial");
+            public Color FontColor { get; set; } = fontColor ?? Colors.Black;
+            public int FontSize { get; set; } = fontSize ?? 18;
+            public HorizontalAlignment HorizontalAlignment { get; set; } = horizontalAlignment ?? HorizontalAlignment.Center;
+            public VerticalAlignment VerticalAlignment { get; set; } = verticalAlignment ?? VerticalAlignment.Center;
         }
 
         public static void SetFontAttributes(ICanvas canvas, StandardFontPropterties standardFontPropterties)
@@ -35,20 +26,16 @@ namespace MauiControlsLibrary
         {
             if (!string.IsNullOrEmpty(manifestResourcePath))
             {
-                using (Stream? stream = assembly.GetManifestResourceStream(manifestResourcePath))
-                {
-                    return PlatformImage.FromStream(stream);
-                }
+                using Stream? stream = assembly.GetManifestResourceStream(manifestResourcePath);
+                return PlatformImage.FromStream(stream);
             }
             return null;
         }
 
-        public static bool PointFValueIsInRange(PointF? point, double xMinValue, double xMaxValue, double yMinValue, double yMaxValue) 
+        public static bool PointFValueIsInRange(PointF? point, double xMinValue, double xMaxValue, double yMinValue, double yMaxValue)
         {
-            if (point.HasValue && point.Value.X >= xMinValue && point.Value.X <= xMaxValue && point.Value.Y >= yMinValue && 
-                point.Value.Y <= yMaxValue)
-                return true;
-            return false;
+            return point.HasValue && point.Value.X >= xMinValue && point.Value.X <= xMaxValue && point.Value.Y >= yMinValue &&
+                point.Value.Y <= yMaxValue;
         }
 
         public static bool IntValueIsInRange(int valueToCheck, int minValue, int maxValue)
@@ -63,6 +50,11 @@ namespace MauiControlsLibrary
             if (value > maxValue)
                 value = moreThanMaxValueSet ?? maxValue;
             return value;
+        }
+
+        public static bool ArrayNotNullOrEmpty(Array? array)
+        {
+            return array != null && array.Length > 0;
         }
     }
 }

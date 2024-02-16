@@ -1,5 +1,4 @@
-﻿using Microsoft.Maui.Graphics.Platform;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace MauiControlsLibrary
 {
@@ -10,29 +9,22 @@ namespace MauiControlsLibrary
         public RectF[]? ImageTapAreas { get; set; }
         public event EventHandler<MCLImageEventArgs>? OnMCLImageTapped;
 
-        public class MCLImageEventArgs : EventArgs
+        public class MCLImageEventArgs(EventArgs eventArgs, int[] tappedImageAreasIndexes) : EventArgs
         {
-            public EventArgs? EventArgs { get; set; }
-            public int[]? TappedImageAreasIndexes { get; set; }
-
-            public MCLImageEventArgs(EventArgs eventArgs, int[] tappedImageAreasIndexes)
-            {
-                EventArgs = eventArgs;
-                TappedImageAreasIndexes = tappedImageAreasIndexes;
-            }
+            public EventArgs? EventArgs { get; set; } = eventArgs;
+            public int[]? TappedImageAreasIndexes { get; set; } = tappedImageAreasIndexes;
         }
 
         public MCLImage()
         {
-            this.Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
+            Drawable = this;
+            TapGestureRecognizer tapGestureRecognizer = new();
             tapGestureRecognizer.Tapped += (s, e) =>
             {
                 Point? point = e.GetPosition(this);
-                if (Helper.PointFValueIsInRange(point, 0, this.Width, 0, this.Height))
+                if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
                 {
-
-                    List<int> tappedImageAreasIndexes = new();
+                    List<int> tappedImageAreasIndexes = [];
                     for (int i = 0; ImageTapAreas != null && i < ImageTapAreas.Length; i++)
                     {
                         if (Helper.PointFValueIsInRange(point, ImageTapAreas[i].X, ImageTapAreas[i].X + ImageTapAreas[i].Width,
@@ -41,12 +33,11 @@ namespace MauiControlsLibrary
                             tappedImageAreasIndexes.Add(i);
                         }
                     }
-                    if (OnMCLImageTapped != null)
-                        OnMCLImageTapped(this, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
-                    this.Invalidate();
+                    OnMCLImageTapped?.Invoke(this, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
+                    Invalidate();
                 }
             };
-            this.GestureRecognizers.Add(tapGestureRecognizer);
+            GestureRecognizers.Add(tapGestureRecognizer);
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
@@ -60,10 +51,10 @@ namespace MauiControlsLibrary
         public void LoadImage(Assembly assembly, string manifestResourcePath)
         {
             Image = Helper.LoadImage(assembly, manifestResourcePath);
-            if(Image != null)
+            if (Image != null)
             {
-                this.WidthRequest = Image.Width;
-                this.HeightRequest = Image.Height;
+                WidthRequest = Image.Width;
+                HeightRequest = Image.Height;
             }
         }
     }
