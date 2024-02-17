@@ -1,4 +1,6 @@
-﻿namespace MauiControlsLibrary
+﻿using Xamarin.Google.Crypto.Tink.Signature;
+
+namespace MauiControlsLibrary
 {
     public class MCLGrid : GraphicsView, IDrawable
     {
@@ -27,40 +29,43 @@
         {
             Drawable = this;
             PanGestureRecognizer panGesture = new();
-            panGesture.PanUpdated += (s, e) =>
-            {
-                if (Data != null && e.StatusType == GestureStatus.Running)
-                {
-                    currentPanY += (int)e.TotalY;
-                    currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, ((Data.GetLength(0) - 1) * DataRowHeight) + HeaderRowHeight);
-                    currentPanX += (int)e.TotalX;
-                    currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, (Data.GetLength(1) - 1) * ColumnWidth);
-                    Invalidate();
-                }
-            };
+            panGesture.PanUpdated += PanGesture_PanUpdated;
             GestureRecognizers.Add(panGesture);
             TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += (s, e) =>
-            {
-                Point? point = e.GetPosition(this);
-                if (Helper.ArrayNotNullOrEmpty(Data) && point.HasValue && Helper.PointFValueIsInRange(point, 0, Width, HeaderRowHeight, Height))
-                {
-                    int currentRowIndex = (int)Math.Floor((((decimal)currentPanY - HeaderRowHeight) / DataRowHeight) +
-                        ((decimal)point.Value.Y / DataRowHeight));
-                    currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, Data.GetLength(0) - 1);
-                    int currentColIndex = (int)Math.Floor((currentPanX / (decimal)ColumnWidth) + ((decimal)point.Value.X / ColumnWidth));
-                    currentColIndex = Helper.ValueResetOnBoundsCheck(currentColIndex, 0, Data.GetLength(1) - 1);
-                    OnMCLGridTapped?.Invoke(this, new GridEventArgs(e, currentRowIndex, currentColIndex));
-                    Invalidate();
-                }
-            };
+            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
             GestureRecognizers.Add(tapGestureRecognizer);
+        }
+
+        public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
+        {
+            Point? point = e.GetPosition(this);
+            if (Helper.ArrayNotNullOrEmpty(Data) && point.HasValue && Helper.PointFValueIsInRange(point, 0, Width, HeaderRowHeight, Height))
+            {
+                int currentRowIndex = (int)Math.Floor((((decimal)currentPanY - HeaderRowHeight) / DataRowHeight) +
+                    ((decimal)point.Value.Y / DataRowHeight));
+                currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, Data.GetLength(0) - 1);
+                int currentColIndex = (int)Math.Floor((currentPanX / (decimal)ColumnWidth) + ((decimal)point.Value.X / ColumnWidth));
+                currentColIndex = Helper.ValueResetOnBoundsCheck(currentColIndex, 0, Data.GetLength(1) - 1);
+                OnMCLGridTapped?.Invoke(this, new GridEventArgs(e, currentRowIndex, currentColIndex));
+                Invalidate();
+            }
+        }
+
+        public virtual void PanGesture_PanUpdated(object? sender, PanUpdatedEventArgs e)
+        {
+            if (Data != null && e.StatusType == GestureStatus.Running)
+            {
+                currentPanY += (int)e.TotalY;
+                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, ((Data.GetLength(0) - 1) * DataRowHeight) + HeaderRowHeight);
+                currentPanX += (int)e.TotalX;
+                currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, (Data.GetLength(1) - 1) * ColumnWidth);
+                Invalidate();
+            }
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
-            canvas.StrokeColor = Colors.Grey;
-            canvas.DrawRectangle(0, 0, (float)Width, (float)Height);
+            DrawFrame(canvas, 0, 0, (float)Width, (float)Height);
             canvas.SaveState();
             canvas.ClipRectangle(0, 0, (float)Width, (float)Height);
             if (Helper.ArrayNotNullOrEmpty(HeaderNames))
@@ -71,9 +76,7 @@
                 {
                     if (HeaderNames[col] != null)
                     {
-                        Helper.SetFontAttributes(canvas, HeaderFont);
-                        canvas.DrawString(HeaderNames[col], (col * ColumnWidth) - currentPanX, 0, ColumnWidth, HeaderRowHeight,
-                            HeaderFont.HorizontalAlignment, HeaderFont.VerticalAlignment);
+                        DrawHeaderName(canvas, col, HeaderNames[col], (col * ColumnWidth) - currentPanX, 0, ColumnWidth, HeaderRowHeight);
                     }
                 }
             }
@@ -92,17 +95,36 @@
                     {
                         if (Data[row, col] != null)
                         {
-                            Helper.SetFontAttributes(canvas, DataFont);
                             int rowOffset = (row * DataRowHeight) + HeaderRowHeight - currentPanY;
                             if (rowOffset < HeaderRowHeight && row == Data.GetLength(0) - 1)
+                            {
                                 rowOffset = HeaderRowHeight;
-                            canvas.DrawString(Data[row, col], (col * ColumnWidth) - currentPanX, rowOffset, ColumnWidth,
-                                DataRowHeight, DataFont.HorizontalAlignment, DataFont.VerticalAlignment);
+                            }
+                            DrawGridCellLabel(canvas, row, col, Data[row, col], (col * ColumnWidth) - currentPanX, rowOffset, ColumnWidth,
+                                DataRowHeight);
                         }
                     }
                 }
                 _ = canvas.RestoreState();
             }
+        }
+
+        protected virtual void DrawFrame(ICanvas canvas, float x, float y, float width, float height)
+        {
+            canvas.StrokeColor = Colors.Grey;
+            canvas.DrawRectangle(x, y, (float)Width, (float)Height);
+        }
+
+        protected virtual void DrawHeaderName(ICanvas canvas, int headerColumnIndex, string headerLabel, float x, float y, float width, float height)
+        {
+            Helper.SetFontAttributes(canvas, HeaderFont);
+            canvas.DrawString(headerLabel, x, y, width, height, HeaderFont.HorizontalAlignment, HeaderFont.VerticalAlignment);
+        }
+
+        protected virtual void DrawGridCellLabel(ICanvas canvas, int cellRow, int cellCol, string cellLabel, float x, float y, float width, float height)
+        {
+            Helper.SetFontAttributes(canvas, DataFont);
+            canvas.DrawString(cellLabel, x, y, width, height, DataFont.HorizontalAlignment, DataFont.VerticalAlignment);
         }
     }
 }

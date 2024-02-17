@@ -1,56 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace MauiControlsLibrary
 {
-    public class MCLImageButton : MCLButton
+    public class MCLImageButton : MCLButtonBase
     {
-        public new string? ButtonText { get; }
-        public new Color? ButtonColor { get; }
-        public new Color? ButtonTappedColor { get; }
-        public new double? ButtonCornerRadius { get; }
-        public new Helper.StandardFontPropterties? ButtonLabelFont { get; }
         public Microsoft.Maui.Graphics.IImage? ButtonBackgroundNotPressedImage { get; set; }
         public Microsoft.Maui.Graphics.IImage? ButtonBackgroundPressedImage { get; set; }
         public bool ClipButtonBackgroundImage { get; set; } = true;
 
-        public override void Draw(ICanvas canvas, RectF dirtyRect)
+        public override void DrawButton(ICanvas canvas, float x, float y, float width, float height)
         {
-            if (Tapped)
+            if (ButtonBackgroundPressedImage != null && ButtonBackgroundNotPressedImage != null)
             {
-                Tapped = false;
-                if (ButtonBackgroundPressedImage != null)
-                {
-                    canvas.SaveState();
-                    canvas.ClipRectangle(0, 0, (float)Width, (float)Height);
-                    if (ClipButtonBackgroundImage)
-                    {
-                        canvas.DrawImage(ButtonBackgroundPressedImage, 0, 0, ButtonBackgroundPressedImage.Width < Width ? (float)Width :
-                            ButtonBackgroundPressedImage.Width, ButtonBackgroundPressedImage.Height < Height ? (float)Height :
-                            ButtonBackgroundPressedImage.Height);
-                    }
-                    else
-                        canvas.DrawImage(ButtonBackgroundPressedImage, 0, 0, (float)Width, (float)Height);
-                    canvas.ResetState();
-                    Invalidate();
-                }
-            }
-            else if (ButtonBackgroundNotPressedImage != null)
-            {
+                Microsoft.Maui.Graphics.IImage image = Tapped ? ButtonBackgroundPressedImage : ButtonBackgroundNotPressedImage;
                 canvas.SaveState();
-                canvas.ClipRectangle(0, 0, (float)Width, (float)Height);
+                canvas.ClipRectangle(x, y , width, height);
                 if (ClipButtonBackgroundImage)
                 {
-                    canvas.DrawImage(ButtonBackgroundNotPressedImage, 0, 0, ButtonBackgroundNotPressedImage.Width < Width ? (float)Width :
-                        ButtonBackgroundNotPressedImage.Width, ButtonBackgroundNotPressedImage.Height < Height ? (float)Height :
-                        ButtonBackgroundNotPressedImage.Height);
+                    canvas.DrawImage(image, x, y, image.Width < width ? width : image.Width, image.Height < height ? height : image.Height);
                 }
                 else
-                    canvas.DrawImage(ButtonBackgroundNotPressedImage, 0, 0, (float)Width, (float)Height);
+                {
+                    canvas.DrawImage(image, x, y, width, height);
+                }
                 canvas.ResetState();
             }
         }

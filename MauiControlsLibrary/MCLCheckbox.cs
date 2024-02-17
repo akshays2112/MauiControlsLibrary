@@ -1,41 +1,25 @@
 ﻿namespace MauiControlsLibrary
 {
-    public class MCLCheckbox : GraphicsView, IDrawable
+    public class MCLCheckbox : MCLCheckboxBase
     {
         public string CheckboxCheckedText { get; set; } = "✓";
         public Helper.StandardFontPropterties CheckboxFont { get; set; } = new();
         public Color CheckboxColor { get; set; } = Colors.Green;
         public Color CheckboxTappedColor { get; set; } = Colors.Red;
         public double CheckboxCornerRadius { get; set; } = 5;
-        public event EventHandler<EventArgs>? OnMCLCheckboxChanged;
-        public bool IsChecked { get; set; } = false;
 
-        public MCLCheckbox()
-        {
-            Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += (s, e) =>
-            {
-                Point? point = e.GetPosition(this);
-                if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
-                {
-                    IsChecked = !IsChecked;
-                    OnMCLCheckboxChanged?.Invoke(this, e);
-                    Invalidate();
-                }
-            };
-            GestureRecognizers.Add(tapGestureRecognizer);
-        }
-
-        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
+        public override void DrawFrame(ICanvas canvas, float x, float y, float width, float height)
         {
             canvas.FillColor = CheckboxColor;
-            canvas.FillRoundedRectangle(new Rect(0, 0, Width, Height), CheckboxCornerRadius);
+            canvas.FillRoundedRectangle(new Rect(x, y, width, height), CheckboxCornerRadius);
+        }
+
+        public override void DrawCheckmark(ICanvas canvas, float x, float y, float width, float height)
+        {
             if (IsChecked && !string.IsNullOrEmpty(CheckboxCheckedText))
             {
                 Helper.SetFontAttributes(canvas, CheckboxFont);
-                canvas.DrawString(CheckboxCheckedText, 0, 0, (float)Width, (float)Height,
-                    CheckboxFont.HorizontalAlignment, CheckboxFont.VerticalAlignment);
+                canvas.DrawString(CheckboxCheckedText, x, y, width, height, CheckboxFont.HorizontalAlignment, CheckboxFont.VerticalAlignment);
             }
         }
     }

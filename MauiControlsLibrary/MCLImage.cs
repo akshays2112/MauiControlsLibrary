@@ -19,29 +19,38 @@ namespace MauiControlsLibrary
         {
             Drawable = this;
             TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += (s, e) =>
-            {
-                Point? point = e.GetPosition(this);
-                if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
-                {
-                    List<int> tappedImageAreasIndexes = [];
-                    for (int i = 0; ImageTapAreas != null && i < ImageTapAreas.Length; i++)
-                    {
-                        if (Helper.PointFValueIsInRange(point, ImageTapAreas[i].X, ImageTapAreas[i].X + ImageTapAreas[i].Width,
-                            ImageTapAreas[i].Y, ImageTapAreas[i].Y + ImageTapAreas[i].Height))
-                            tappedImageAreasIndexes.Add(i);
-                    }
-                    OnMCLImageTapped?.Invoke(this, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
-                    Invalidate();
-                }
-            };
+            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
             GestureRecognizers.Add(tapGestureRecognizer);
+        }
+
+        public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
+        {
+            Point? point = e.GetPosition(this);
+            if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            {
+                List<int> tappedImageAreasIndexes = [];
+                for (int i = 0; ImageTapAreas != null && i < ImageTapAreas.Length; i++)
+                {
+                    if (Helper.PointFValueIsInRange(point, ImageTapAreas[i].X, ImageTapAreas[i].X + ImageTapAreas[i].Width,
+                        ImageTapAreas[i].Y, ImageTapAreas[i].Y + ImageTapAreas[i].Height))
+                    {
+                        tappedImageAreasIndexes.Add(i);
+                    }
+                }
+                OnMCLImageTapped?.Invoke(this, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
+                Invalidate();
+            }
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
             if (Image != null)
-                canvas.DrawImage(Image, 0, 0, Image.Width, Image.Height);
+                DrawImage(canvas, Image, 0, 0, Image.Width, Image.Height);
+        }
+
+        public virtual void DrawImage(ICanvas canvas, Microsoft.Maui.Graphics.IImage image, float x, float y, float width, float height)
+        {
+            canvas.DrawImage(Image, x, y, width, height);
         }
 
         public void LoadImage(Assembly assembly, string manifestResourcePath)

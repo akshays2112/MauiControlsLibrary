@@ -46,9 +46,15 @@ namespace MauiControlsLibrary
         public static int ValueResetOnBoundsCheck(int value, int minValue, int maxValue, int? lessThanMinValueSet = null, int? moreThanMaxValueSet = null)
         {
             if (value < 0)
+            {
                 value = lessThanMinValueSet ?? minValue;
+            }
+
             if (value > maxValue)
+            {
                 value = moreThanMaxValueSet ?? maxValue;
+            }
+
             return value;
         }
 
