@@ -1,6 +1,4 @@
-﻿using Xamarin.Google.Crypto.Tink.Signature;
-
-namespace MauiControlsLibrary
+﻿namespace MauiControlsLibrary
 {
     public class MCLGrid : GraphicsView, IDrawable
     {

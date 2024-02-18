@@ -45,15 +45,16 @@ namespace MauiControlsLibrary
         public void Draw(ICanvas canvas, RectF dirtyRect)
         {
             if (Image != null)
-                DrawImage(canvas, Image, 0, 0, Image.Width, Image.Height);
+                DrawImage(canvas, 0, 0, Image.Width, Image.Height);
         }
 
-        public virtual void DrawImage(ICanvas canvas, Microsoft.Maui.Graphics.IImage image, float x, float y, float width, float height)
+        public virtual void DrawImage(ICanvas canvas, float x, float y, float width, float height)
         {
-            canvas.DrawImage(Image, x, y, width, height);
+            if (Image != null)
+                canvas.DrawImage(Image, x, y, width, height);
         }
 
-        public void LoadImage(Assembly assembly, string manifestResourcePath)
+        public virtual void LoadImage(Assembly assembly, string manifestResourcePath)
         {
             Image = Helper.LoadImage(assembly, manifestResourcePath);
             if (Image != null)

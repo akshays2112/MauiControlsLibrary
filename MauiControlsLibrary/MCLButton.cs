@@ -11,8 +11,8 @@
         public override void DrawButton(ICanvas canvas, float x, float y, float width, float height)
         {
             canvas.FillColor = Tapped ? ButtonTappedColor : ButtonColor;
-            canvas.FillRoundedRectangle(new Rect(x, y, width, height), ButtonCornerRadius);
-            if (!string.IsNullOrEmpty(ButtonText))
+            canvas.FillRoundedRectangle(new RectF(x, y, width, height), ButtonCornerRadius);
+            if (!string.IsNullOrEmpty(ButtonText) && ButtonTextFont != null)
             {
                 Helper.SetFontAttributes(canvas, ButtonTextFont);
                 canvas.DrawString(ButtonText, x, y, width, height, ButtonTextFont.HorizontalAlignment, ButtonTextFont.VerticalAlignment);
