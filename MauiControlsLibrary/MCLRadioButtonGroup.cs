@@ -8,7 +8,8 @@
         public int RadioButtonRadius { get; set; } = 7;
         public int SpacingBetweenLabelAndRadioButton { get; set; } = 20;
         public int SpacingBetweenRadioButtons { get; set; } = 30;
-        public int SelectedRadioButtonIndex { get; set; } = -1;
+        private int selectedRadioButtonIndex = -1;
+        public int SelectedRadioButtonIndex { get => selectedRadioButtonIndex; set { selectedRadioButtonIndex = value; } }
         public Color RadioButtonColor { get; set; } = Colors.Green;
         public Color RadioButtonGroupBorderColor { get; set; } = Colors.Grey;
         public Color? RadioButtonGroupBackgroundColor { get; set; } = null;
@@ -26,36 +27,42 @@
         public MCLRadioButtonGroup()
         {
             Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizer);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizer_Tapped, GestureRecognizers);
         }
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.ArrayNotNullOrEmpty(RadioButtonsCenters) && Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            RadioButtonGroupTapped(0, (float)Width, 0, (float)Height, RadioButtonsCenters, RadioButtonRadius,
+            ref selectedRadioButtonIndex, OnMCLRadioButtonGroupTapped, this, e, Invalidate);
+        }
+
+        public static void RadioButtonGroupTapped(float x, float width, float y, float height, PointF[]? radioButtonsCenters, int radioButtonRadius,
+            ref int selectedRadioButtonIndex, EventHandler<RadioButtonGroupEventArgs>? onMCLRadioButtonGroupTapped, GraphicsView sender,
+            TappedEventArgs e, Action invalidate)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.ArrayNotNullOrEmpty(radioButtonsCenters) && Helper.PointFValueIsInRange(point, x, width, y, height))
             {
                 bool found = false;
-                for (int i = 0; i < RadioButtonsCenters.Length; i++)
+                for (int i = 0; i < radioButtonsCenters.Length; i++)
                 {
-                    if (Helper.PointFValueIsInRange(point, RadioButtonsCenters[i].X - RadioButtonRadius, RadioButtonsCenters[i].X + RadioButtonRadius,
-                        RadioButtonsCenters[i].Y - RadioButtonRadius, RadioButtonsCenters[i].Y + RadioButtonRadius))
+                    if (Helper.PointFValueIsInRange(point, radioButtonsCenters[i].X - radioButtonRadius, radioButtonsCenters[i].X + radioButtonRadius,
+                        radioButtonsCenters[i].Y - radioButtonRadius, radioButtonsCenters[i].Y + radioButtonRadius))
                     {
-                        SelectedRadioButtonIndex = i;
+                        selectedRadioButtonIndex = i;
                         found = true;
                         break;
                     }
                 }
                 if (found)
                 {
-                    OnMCLRadioButtonGroupTapped?.Invoke(this, new RadioButtonGroupEventArgs(e, SelectedRadioButtonIndex));
-                    Invalidate();
+                    onMCLRadioButtonGroupTapped?.Invoke(sender, new RadioButtonGroupEventArgs(e, selectedRadioButtonIndex));
+                    invalidate();
                 }
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             int offset = 0;
             RadioButtonsCenters = new PointF[Labels.Length];

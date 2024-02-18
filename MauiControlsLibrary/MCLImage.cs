@@ -25,24 +25,30 @@ namespace MauiControlsLibrary
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            ImageTapped(0, (float)Width, 0, (float)Height, ImageTapAreas, OnMCLImageTapped, Invalidate, this, e);
+        }
+
+        public static void ImageTapped(float x, float width, float y, float height, RectF[]? imageTapAreas,
+            EventHandler<MCLImageEventArgs>? onMCLImageTapped, Action invalidate, GraphicsView sender, TappedEventArgs e)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.PointFValueIsInRange(point, x, width, y, height))
             {
                 List<int> tappedImageAreasIndexes = [];
-                for (int i = 0; ImageTapAreas != null && i < ImageTapAreas.Length; i++)
+                for (int i = 0; imageTapAreas != null && i < imageTapAreas.Length; i++)
                 {
-                    if (Helper.PointFValueIsInRange(point, ImageTapAreas[i].X, ImageTapAreas[i].X + ImageTapAreas[i].Width,
-                        ImageTapAreas[i].Y, ImageTapAreas[i].Y + ImageTapAreas[i].Height))
+                    if (Helper.PointFValueIsInRange(point, imageTapAreas[i].X, imageTapAreas[i].X + imageTapAreas[i].Width,
+                        imageTapAreas[i].Y, imageTapAreas[i].Y + imageTapAreas[i].Height))
                     {
                         tappedImageAreasIndexes.Add(i);
                     }
                 }
-                OnMCLImageTapped?.Invoke(this, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
-                Invalidate();
+                onMCLImageTapped?.Invoke(sender, new MCLImageEventArgs(e, tappedImageAreasIndexes.ToArray<int>()));
+                invalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             if (Image != null)
                 DrawImage(canvas, 0, 0, Image.Width, Image.Height);

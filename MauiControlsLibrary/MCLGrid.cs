@@ -26,42 +26,52 @@
         public MCLGrid()
         {
             Drawable = this;
-            PanGestureRecognizer panGesture = new();
-            panGesture.PanUpdated += PanGesture_PanUpdated;
-            GestureRecognizers.Add(panGesture);
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizer);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizer_Tapped, GestureRecognizers);
+            Helper.CreatePanGestureRecognizer(PanGesture_PanUpdated, GestureRecognizers);
         }
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.ArrayNotNullOrEmpty(Data) && point.HasValue && Helper.PointFValueIsInRange(point, 0, Width, HeaderRowHeight, Height))
+            GridTapped(0, (float)Width, HeaderRowHeight, (float)Height, currentPanY, HeaderRowHeight, DataRowHeight, Data, currentPanX, ColumnWidth,
+                (GraphicsView) this, e, OnMCLGridTapped, Invalidate);
+        }
+
+        public static void GridTapped(float x, float width, float y, float height, int currentPanY, int headerRowHeight, int dataRowHeight,
+            string[,]? data, int currentPanX, int columnWidth, GraphicsView sender, TappedEventArgs e, EventHandler<GridEventArgs>? onMCLGridTapped, 
+            Action invalidate)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.ArrayNotNullOrEmpty(data) && point.HasValue && Helper.PointFValueIsInRange(point, x, width, y, height))
             {
-                int currentRowIndex = (int)Math.Floor((((decimal)currentPanY - HeaderRowHeight) / DataRowHeight) +
-                    ((decimal)point.Value.Y / DataRowHeight));
-                currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, Data.GetLength(0) - 1);
-                int currentColIndex = (int)Math.Floor((currentPanX / (decimal)ColumnWidth) + ((decimal)point.Value.X / ColumnWidth));
-                currentColIndex = Helper.ValueResetOnBoundsCheck(currentColIndex, 0, Data.GetLength(1) - 1);
-                OnMCLGridTapped?.Invoke(this, new GridEventArgs(e, currentRowIndex, currentColIndex));
-                Invalidate();
+                int currentRowIndex = (int)Math.Floor((((decimal)currentPanY - headerRowHeight) / dataRowHeight) +
+                    ((decimal)point.Value.Y / dataRowHeight));
+                currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, data.GetLength(0) - 1);
+                int currentColIndex = (int)Math.Floor((currentPanX / (decimal)columnWidth) + ((decimal)point.Value.X / columnWidth));
+                currentColIndex = Helper.ValueResetOnBoundsCheck(currentColIndex, 0, data.GetLength(1) - 1);
+                onMCLGridTapped?.Invoke(sender, new GridEventArgs(e, currentRowIndex, currentColIndex));
+                invalidate();
             }
         }
 
         public virtual void PanGesture_PanUpdated(object? sender, PanUpdatedEventArgs e)
         {
-            if (Data != null && e.StatusType == GestureStatus.Running)
+            GridPan(Data, ref currentPanY, ref currentPanX, DataRowHeight, HeaderRowHeight, ColumnWidth, e, Invalidate);
+        }
+
+        public static void GridPan(string[,]? data, ref int currentPanY, ref int currentPanX, int dataRowHeight, int headerRowHeight, int columnWidth,
+            PanUpdatedEventArgs e, Action invalidate)
+        {
+            if (data != null && e.StatusType == GestureStatus.Running)
             {
                 currentPanY += (int)e.TotalY;
-                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, ((Data.GetLength(0) - 1) * DataRowHeight) + HeaderRowHeight);
+                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, ((data.GetLength(0) - 1) * dataRowHeight) + headerRowHeight);
                 currentPanX += (int)e.TotalX;
-                currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, (Data.GetLength(1) - 1) * ColumnWidth);
-                Invalidate();
+                currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, (data.GetLength(1) - 1) * columnWidth);
+                invalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             DrawFrame(canvas, 0, 0, (float)Width, (float)Height);
             canvas.SaveState();

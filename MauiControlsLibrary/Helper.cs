@@ -62,5 +62,21 @@ namespace MauiControlsLibrary
         {
             return array != null && array.Length > 0;
         }
+
+        public static void CreateTapGestureRecognizer(EventHandler<TappedEventArgs> tapGestureRecognizer_Tapped,
+            IList<IGestureRecognizer> gestureRecognizers)
+        {
+            TapGestureRecognizer tapGestureRecognizer = new();
+            tapGestureRecognizer.Tapped += tapGestureRecognizer_Tapped;
+            gestureRecognizers.Add(tapGestureRecognizer);
+        }
+
+        public static void CreatePanGestureRecognizer(EventHandler<PanUpdatedEventArgs> panGesture_PanUpdated,
+            IList<IGestureRecognizer> gestureRecognizers)
+        {
+            PanGestureRecognizer panGesture = new();
+            panGesture.PanUpdated += panGesture_PanUpdated;
+            gestureRecognizers.Add(panGesture);
+        }
     }
 }

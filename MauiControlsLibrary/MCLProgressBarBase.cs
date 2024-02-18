@@ -51,22 +51,26 @@
         public MCLProgressBarBase()
         {
             Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizer);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizer_Tapped, GestureRecognizers);
         }
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            ProgressBarTapped(0, (float)Width, 0, (float)Height, OnMCLProgressBarTapped, this, e, Invalidate, minValue, maxValue, currentValue);
+        }
+
+        public static void ProgressBarTapped(float x, float width, float y, float height, EventHandler<MCLProgressBarEventArgs>? onMCLProgressBarTapped, 
+            GraphicsView sender, TappedEventArgs e, Action invalidate, decimal minValue, decimal maxValue, decimal currentValue)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.PointFValueIsInRange(point, x, width, y, height))
             {
-                OnMCLProgressBarTapped?.Invoke(this, new MCLProgressBarEventArgs(e, minValue, maxValue, currentValue));
-                Invalidate();
+                onMCLProgressBarTapped?.Invoke(sender, new MCLProgressBarEventArgs(e, minValue, maxValue, currentValue));
+                invalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             DrawFrame(canvas, 0, 0, (float)this.Width, (float)this.Height);
             int progressBarFillLengthInPixels = (int)(currentValue * (ArrangeHorizontal ? (decimal)Width : (decimal)Height) / (maxValue - minValue));

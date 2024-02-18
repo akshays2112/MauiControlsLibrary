@@ -3,37 +3,47 @@
     public abstract class MCLButtonBase : GraphicsView, IDrawable
     {
         public event EventHandler<EventArgs>? OnMCLButtonTapped;
-        public bool Tapped { get; set; } = false;
+        private bool tapped = false;
+        public bool Tapped { get => tapped; set { tapped = value; } }
 
         public MCLButtonBase()
         {
             Drawable = this;
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizer);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizer_Tapped, GestureRecognizers);
         }
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            ButtonTapped(0, (float)Width, 0, (float)Height, ref tapped, OnMCLButtonTapped, this, Invalidate, e);
+        }
+
+        public static void ButtonTapped(float x, float width, float y, float height, ref bool tapped,
+            EventHandler<EventArgs>? onButtonTapped, Element? sender, Action actionInvalidate, TappedEventArgs e)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.PointFValueIsInRange(point, x, width, y, height))
             {
-                Tapped = true;
-                OnMCLButtonTapped?.Invoke(this, e);
-                Invalidate();
+                tapped = true;
+                onButtonTapped?.Invoke(sender, e);
+                actionInvalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect) 
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect) 
         {
             DrawButton(canvas, 0, 0, (float)Width, (float)Height);
-            if (Tapped)
-            {
-                Tapped = false;
-                Invalidate();
-            }
+            ButtonLogic(ref tapped, Invalidate);
         }
 
         public virtual void DrawButton(ICanvas canvas, float x, float y, float width, float height) { }
+
+        public static void ButtonLogic(ref bool tapped, Action invalidate)
+        {
+            if (tapped)
+            {
+                tapped = false;
+                invalidate();
+            }
+        }
     }
 }

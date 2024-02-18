@@ -21,7 +21,7 @@
             Drawable = this;
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             DrawFrame(canvas, 0, 0, (float)Width, (float)Height);
             DrawLabel(canvas, 0, 0, (float)Width, (float)Height);

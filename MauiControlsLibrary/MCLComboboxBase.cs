@@ -5,15 +5,18 @@
         public Helper.StandardFontPropterties TextboxFont { get; set; } = new(verticalAlignment: VerticalAlignment.Top);
         public int ButtonWidth { get; set; } = 25;
         public int ButtonHeight { get; set; } = 25;
-        public bool ButtonTapped { get; set; } = false;
+        private bool buttonTapped = false;
+        public bool ButtonTapped { get => buttonTapped; set { buttonTapped = value; } }
         public int ButtonCornerRadius { get; set; } = 5;
-        public bool ListboxVisible { get; set; } = false;
+        private bool listboxVisible = false;
+        public bool ListboxVisible { get => listboxVisible; set { listboxVisible = value; } }
         public string[] DropdownLabels { get; set; } = Array.Empty<string>();
         public Helper.StandardFontPropterties LabelFont { get; set; } = new(verticalAlignment: VerticalAlignment.Top);
         public Color? LabelBackgroundColor { get; set; } = null;
         public int ListboxHeight { get; set; } = 200;
         public int RowHeight { get; set; } = 25;
-        public int SelectedItemIndex { get; set; } = -1;
+        private int selectedItemIndex = -1;
+        public int SelectedItemIndex { get => selectedItemIndex; set { selectedItemIndex = value; } }
         public event EventHandler<ComboboxEventArgs>? SelectedItemChanged;
 
         protected int currentPanY = 0;
@@ -27,48 +30,69 @@
         public MCLComboboxBase()
         {
             Drawable = this;
-            TapGestureRecognizer tapGestureRecognizerButton = new();
-            tapGestureRecognizerButton.Tapped += TapGestureRecognizerButton_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizerButton);
-            PanGestureRecognizer panGesture = new();
-            panGesture.PanUpdated += PanGesture_PanUpdated;
-            GestureRecognizers.Add(panGesture);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizerButton_Tapped, GestureRecognizers);
+            Helper.CreatePanGestureRecognizer(PanGesture_PanUpdated, GestureRecognizers);
         }
 
         public virtual void PanGesture_PanUpdated(object? sender, PanUpdatedEventArgs e)
         {
-            if (Helper.ArrayNotNullOrEmpty(DropdownLabels) && e.StatusType == GestureStatus.Running)
+            ComboboxPanGesture(DropdownLabels, e.StatusType, ref currentPanY, 0, (DropdownLabels.Length * RowHeight) - ButtonHeight,
+                e.TotalY, RowHeight, Invalidate);
+        }
+
+        public static void ComboboxPanGesture(string[] dropdownLabels, GestureStatus gestureStatus, ref int currentPanY,
+            int minValue, int maxValue, double totalY, int rowHeight, Action invalidate)
+        {
+            if (Helper.ArrayNotNullOrEmpty(dropdownLabels) && gestureStatus == GestureStatus.Running)
             {
-                currentPanY += (int)e.TotalY - RowHeight;
-                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (DropdownLabels.Length * RowHeight) - ButtonHeight);
-                Invalidate();
+                currentPanY += (int)totalY - rowHeight;
+                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, minValue, maxValue);
+                invalidate();
             }
         }
 
         public virtual void TapGestureRecognizerButton_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.PointFValueIsInRange(point, (int)Width - ButtonWidth, (int)Width, 0, ButtonHeight))
+            if (!ComboboxDropdownButtonTapped((int)Width - ButtonWidth, (int)Width, 0, ButtonHeight, ref buttonTapped,
+                ref listboxVisible, ButtonHeight, ListboxHeight, (GraphicsView)this, Invalidate, e))
+                ComboboxListboxLabelTapped(0, (float)Width, (float)Height, ref listboxVisible, DropdownLabels, RowHeight, ref currentPanY,
+                    ref selectedItemIndex, ButtonHeight, ListboxHeight, (GraphicsView) this, Invalidate, e, SelectedItemChanged);
+        }
+
+        public static bool ComboboxDropdownButtonTapped(float x, float width, float y, float height, ref bool buttonTapped, ref bool listboxVisible,
+            int buttonHeight, int listboxHeight, GraphicsView? sender, Action invalidate, TappedEventArgs e)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.PointFValueIsInRange(point, x, width, y, height) && sender != null)
             {
-                ButtonTapped = true;
-                ListboxVisible = !ListboxVisible;
-                HeightRequest = ListboxVisible ? ButtonHeight + ListboxHeight : ButtonHeight;
-                Invalidate();
+                buttonTapped = true;
+                listboxVisible = !listboxVisible;
+                sender.HeightRequest = listboxVisible ? buttonHeight + listboxHeight : buttonHeight;
+                invalidate();
+                return true;
             }
-            else if (Helper.ArrayNotNullOrEmpty(DropdownLabels) && point.HasValue && Helper.IntValueIsInRange((int)point.Value.X, 0, (int)Width)
-                && Helper.IntValueIsInRange((int)point.Value.Y, RowHeight, (int)Height))
+            return false;
+        }
+
+        public static void ComboboxListboxLabelTapped(float x, float width, float height, ref bool listboxVisible,
+            string[] dropdownLabels, int rowHeight, ref int currentPanY, ref int selectedItemIndex, int buttonHeight, 
+            int listboxHeight, GraphicsView? sender, Action invalidate, TappedEventArgs e, EventHandler<ComboboxEventArgs>? selectedItemChanged)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.ArrayNotNullOrEmpty(dropdownLabels) && point.HasValue && Helper.IntValueIsInRange((int)point.Value.X, (int)x, (int)width)
+                && Helper.IntValueIsInRange((int)point.Value.Y, rowHeight, (int)height) && sender != null)
             {
-                int currentRowIndex = (int)Math.Floor(((currentPanY - RowHeight) / (decimal)RowHeight) + ((decimal)point.Value.Y / RowHeight));
-                currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, 0, DropdownLabels.Length - 1);
-                SelectedItemIndex = currentRowIndex;
-                ListboxVisible = !ListboxVisible;
-                HeightRequest = ListboxVisible ? ButtonHeight + ListboxHeight : ButtonHeight;
-                SelectedItemChanged?.Invoke(this, new ComboboxEventArgs(e, currentRowIndex));
-                Invalidate();
+                int currentRowIndex = (int)Math.Floor(((currentPanY - rowHeight) / (decimal)rowHeight) + ((decimal)point.Value.Y / rowHeight));
+                currentRowIndex = Helper.ValueResetOnBoundsCheck(currentRowIndex, (int)x, dropdownLabels.Length - 1);
+                selectedItemIndex = currentRowIndex;
+                listboxVisible = !listboxVisible;
+                sender.HeightRequest = listboxVisible ? buttonHeight + listboxHeight : buttonHeight;
+                selectedItemChanged?.Invoke(sender, new ComboboxEventArgs(e, currentRowIndex));
+                invalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             DrawFrame(canvas, 0, 0, (float)Width, ButtonHeight);
             DrawTextbox(canvas, 0, 0, (float)Width - ButtonHeight, ButtonHeight);
@@ -125,5 +149,7 @@
             Helper.SetFontAttributes(canvas, LabelFont);
             canvas.DrawString(DropdownLabels[row], x, y, width, height, LabelFont.HorizontalAlignment, LabelFont.VerticalAlignment);
         }
+
+        public virtual void ComboboxDropdownButtonTapped() { }
     }
 }

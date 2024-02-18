@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace MauiControlsLibrary
+﻿namespace MauiControlsLibrary
 {
     public abstract class MCLTreeviewBase : GraphicsView, IDrawable
     {
@@ -39,14 +37,14 @@ namespace MauiControlsLibrary
             Collapsed
         }
 
-        protected class TreeviewNodeHit(RectF hitArea, HitAreaType hitAreaType, TreeviewNode treeviewNode)
+        public class TreeviewNodeHit(RectF hitArea, HitAreaType hitAreaType, TreeviewNode treeviewNode)
         {
             public RectF HitArea { get; set; } = hitArea;
             public HitAreaType? HitAreaType { get; set; } = hitAreaType;
             public TreeviewNode? TreeviewNode { get; set; } = treeviewNode;
         }
 
-        protected enum HitAreaType
+        public enum HitAreaType
         {
             ExpandCollapseButton,
             Label
@@ -55,18 +53,20 @@ namespace MauiControlsLibrary
         public MCLTreeviewBase()
         {
             Drawable = this;
-            PanGestureRecognizer panGesture = new();
-            panGesture.PanUpdated += PanGesture_PanUpdated;
-            GestureRecognizers.Add(panGesture);
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizer);
+            Helper.CreatePanGestureRecognizer(PanGesture_PanUpdated, GestureRecognizers);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizer_Tapped, GestureRecognizers);
         }
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            TreeviewTapped(0, (float)Width, 0, (float)Height, treeviewNodeHits, this, e, Invalidate, OnMCLTreeviewNodeLabelTapped);
+        }
+
+        public static void TreeviewTapped(float x, float width, float y, float height, List<TreeviewNodeHit> treeviewNodeHits,
+            GraphicsView sender, TappedEventArgs e, Action invalidate, EventHandler<TreeviewNodeLabelTappedEventArgs>? onMCLTreeviewNodeLabelTapped)
+        {
+            Point? point = e.GetPosition(sender);
+            if (Helper.PointFValueIsInRange(point, x, width, y, height))
             {
                 if (treeviewNodeHits != null)
                 {
@@ -79,15 +79,14 @@ namespace MauiControlsLibrary
                         {
                             if (treeviewNodeHits[i].HitAreaType == HitAreaType.ExpandCollapseButton)
                             {
-                                treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState = treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState == ExpandCollapseButtonState.Collapsed
-                                    ? ExpandCollapseButtonState.Expanded
-                                    : ExpandCollapseButtonState.Collapsed;
-                                Invalidate();
+                                treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState = treeviewNodeHits[i].TreeviewNode.ExpandCollapseButtonState ==
+                                    ExpandCollapseButtonState.Collapsed ? ExpandCollapseButtonState.Expanded : ExpandCollapseButtonState.Collapsed;
+                                invalidate();
                                 break;
                             }
                             else
                             {
-                                OnMCLTreeviewNodeLabelTapped?.Invoke(this, new TreeviewNodeLabelTappedEventArgs(e, treeviewNodeHits[i].TreeviewNode));
+                                onMCLTreeviewNodeLabelTapped?.Invoke(sender, new TreeviewNodeLabelTappedEventArgs(e, treeviewNodeHits[i].TreeviewNode));
                             }
                         }
                     }
@@ -97,17 +96,25 @@ namespace MauiControlsLibrary
 
         public virtual void PanGesture_PanUpdated(object? sender, PanUpdatedEventArgs e)
         {
+            TreeviewPan(treeviewNodeHits, ref currentPanY, ref currentPanX, maxTreeviewNodeWidth, maxTreeviewNodesHeight, TreeviewNodeHeight, Width,
+                TreeviewNodeLabelFont, e, Invalidate);
+        }
+
+        public static void TreeviewPan(List<TreeviewNodeHit> treeviewNodeHits, ref int currentPanY, ref int currentPanX,
+            int maxTreeviewNodeWidth, int maxTreeviewNodesHeight, int treeviewNodeHeight, double width, Helper.StandardFontPropterties treeviewNodeLabelFont,
+            PanUpdatedEventArgs e, Action invalidate)
+        {
             if (treeviewNodeHits != null && e.StatusType == GestureStatus.Running)
             {
                 currentPanY += (int)e.TotalY;
-                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, maxTreeviewNodesHeight - TreeviewNodeHeight);
+                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, maxTreeviewNodesHeight - treeviewNodeHeight);
                 currentPanX += (int)e.TotalX;
-                currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, maxTreeviewNodeWidth - (int)Width + TreeviewNodeLabelFont.FontSize);
-                Invalidate();
+                currentPanX = Helper.ValueResetOnBoundsCheck(currentPanX, 0, maxTreeviewNodeWidth - (int)width + treeviewNodeLabelFont.FontSize);
+                invalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             DrawFrame(canvas, 0, 0, (float)Width, (float)Height);
             maxTreeviewNodesHeight = 0;

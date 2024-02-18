@@ -19,37 +19,44 @@
         public MCLListbox()
         {
             Drawable = this;
-            PanGestureRecognizer panGesture = new();
-            panGesture.PanUpdated += PanGesture_PanUpdated;
-            GestureRecognizers.Add(panGesture);
-            TapGestureRecognizer tapGestureRecognizer = new();
-            tapGestureRecognizer.Tapped += TapGestureRecognizer_Tapped;
-            GestureRecognizers.Add(tapGestureRecognizer);
+            Helper.CreatePanGestureRecognizer(PanGesture_PanUpdated, GestureRecognizers);
+            Helper.CreateTapGestureRecognizer(TapGestureRecognizer_Tapped, GestureRecognizers);
         }
 
         public virtual void TapGestureRecognizer_Tapped(object? sender, TappedEventArgs e)
         {
-            Point? point = e.GetPosition(this);
-            if (point.HasValue && Helper.PointFValueIsInRange(point, 0, Width, 0, Height))
+            ListboxTapped(0, (float)Width, 0, (float)Height, currentPanY, RowHeight, Labels, OnMCLListboxTapped, this, e, Invalidate);
+        }
+
+        public static void ListboxTapped(float x, float width, float y, float height, int currentPanY, int rowHeight, string[] labels,
+            EventHandler<ListboxEventArgs>? onMCLListboxTapped, GraphicsView sender, TappedEventArgs e, Action invalidate)
+        {
+            Point? point = e.GetPosition(sender);
+            if (point.HasValue && Helper.PointFValueIsInRange(point, x, width, y, height))
             {
-                int currentIndex = (int)Math.Floor((currentPanY / (decimal)RowHeight) + ((decimal)point.Value.Y / RowHeight));
-                currentIndex = Helper.ValueResetOnBoundsCheck(currentIndex, 0, Labels.Length, moreThanMaxValueSet: Labels.Length - 1);
-                OnMCLListboxTapped?.Invoke(this, new ListboxEventArgs(e, currentIndex));
-                Invalidate();
+                int currentIndex = (int)Math.Floor((currentPanY / (decimal)rowHeight) + ((decimal)point.Value.Y / rowHeight));
+                currentIndex = Helper.ValueResetOnBoundsCheck(currentIndex, 0, labels.Length, moreThanMaxValueSet: labels.Length - 1);
+                onMCLListboxTapped?.Invoke(sender, new ListboxEventArgs(e, currentIndex));
+                invalidate();
             }
         }
 
         public virtual void PanGesture_PanUpdated(object? sender, PanUpdatedEventArgs e)
         {
-            if (Labels != null && e.StatusType == GestureStatus.Running)
+            ListboxPan(Labels, ref currentPanY, RowHeight, e, Invalidate);
+        }
+
+        public static void ListboxPan(string[] labels, ref int currentPanY, int rowHeight, PanUpdatedEventArgs e, Action invalidate)
+        {
+            if (labels != null && e.StatusType == GestureStatus.Running)
             {
                 currentPanY += (int)e.TotalY;
-                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (Labels.Length - 1) * RowHeight);
-                Invalidate();
+                currentPanY = Helper.ValueResetOnBoundsCheck(currentPanY, 0, (labels.Length - 1) * rowHeight);
+                invalidate();
             }
         }
 
-        public void Draw(ICanvas canvas, RectF dirtyRect)
+        public virtual void Draw(ICanvas canvas, RectF dirtyRect)
         {
             DrawFrame(canvas, 0, 0, (float)Width, (float)Height);
             if (Helper.ArrayNotNullOrEmpty(Labels))
