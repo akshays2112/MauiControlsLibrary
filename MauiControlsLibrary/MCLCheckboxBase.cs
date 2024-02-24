@@ -18,7 +18,7 @@
         }
 
         public static void CheckboxTapped(float x, float width, float y, float height, ref bool isChecked,
-            EventHandler<EventArgs>? onCheckboxChanged, Element? sender, Action actionInvalidate, TappedEventArgs e)
+            EventHandler<EventArgs>? onCheckboxChanged, GraphicsView? sender, Action actionInvalidate, TappedEventArgs e)
         {
             Point? point = e.GetPosition(sender);
             if (Helper.PointFValueIsInRange(point, 0, width, 0, height))

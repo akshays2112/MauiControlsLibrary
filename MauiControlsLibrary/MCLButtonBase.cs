@@ -18,7 +18,7 @@
         }
 
         public static void ButtonTapped(float x, float width, float y, float height, ref bool tapped,
-            EventHandler<EventArgs>? onButtonTapped, Element? sender, Action actionInvalidate, TappedEventArgs e)
+            EventHandler<EventArgs>? onButtonTapped, GraphicsView? sender, Action actionInvalidate, TappedEventArgs e)
         {
             Point? point = e.GetPosition(sender);
             if (Helper.PointFValueIsInRange(point, x, width, y, height))
